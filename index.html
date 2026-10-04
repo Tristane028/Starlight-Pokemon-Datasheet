@@ -310,6 +310,23 @@ details.set .cov{padding:0 10px 10px}
 .fn-facts{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--moon)}
 .fn-note{margin:4px 0 0;font-size:12.5px;line-height:1.5;color:var(--ink-dim)}
 @media (max-width:520px){.fieldnotes{max-width:none}}
+.grid{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr)!important}
+.overview{display:flex;flex-direction:column;min-width:0;contain:size}
+.ov-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.ov-head h2{margin:0}
+.ov-actions{display:flex;gap:6px}.ov-actions button{padding:5px 12px;font-size:12px}
+#ovBody{flex:1;overflow:auto;padding-right:6px;min-height:0}
+.ov-title{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.ov-title svg{width:54px;height:54px;flex:none}
+.ov-name{font-family:var(--display);font-weight:800;font-size:24px;line-height:1.05}
+.ov-rec{font-size:12.5px;color:var(--ink-dim);margin-top:2px}.ov-rec b{color:var(--moon)}
+.ov-h{font-size:12px;letter-spacing:.06em;text-transform:uppercase;font-weight:800;margin:16px 0 6px}
+.ov-h.p1{color:var(--mint)}.ov-h.p2{color:#ff7b8a}.ov-h.p3{color:var(--cyan)}
+.ov-p{margin:0;font-size:14.5px;line-height:1.68;color:var(--ink)}
+.ov-edit{width:100%;min-height:150px;font:14px/1.6 var(--body);color:var(--ink);background:var(--field);border:1px solid var(--panel-edge);border-radius:10px;padding:10px}
+.ov-src{margin:16px 0 0;font-size:12px;color:var(--ink-faint)}
+.ov-src.busy{color:var(--moon)}
+@media (max-width:1100px){.grid{grid-template-columns:1fr!important}.overview{contain:none;order:2}.center{order:1}#ovBody{overflow:visible}}
 .mustack{flex:1;display:flex;flex-direction:column;gap:12px;min-height:0}
 .mustack .mu{aspect-ratio:auto;flex:1 1 0;min-height:0}
 @media (max-width:1180px){.grid{grid-template-columns:1fr 1fr!important}.center{grid-column:1/-1;order:-1}.mucol{contain:none}.mustack .mu{flex:none}}
@@ -339,11 +356,11 @@ details.set .cov{padding:0 10px 10px}
   <nav class="team" id="team" aria-label="Team slots"></nav>
 
   <main class="grid">
-    <aside class="panel mucol" aria-labelledby="h-mu">
-      <h2 id="h-mu" class="mint">Matchups <span class="slots">Slots 1–3</span></h2>
-      <p class="meta muscope" id="muScope"></p>
-      <div class="mustack" id="muLeft"></div>
-    </aside>
+    <section class="panel overview" aria-labelledby="h-ov">
+      <div class="ov-head"><h2 id="h-ov" class="mint">Overview</h2>
+        <div class="ov-actions"><button type="button" class="ghost" id="ovEdit">Edit</button><button type="button" id="ovDraft" hidden>Redraft with Claude</button></div></div>
+      <div id="ovBody"></div>
+    </section>
     <div class="center">
     <section class="panel" aria-labelledby="h-id">
       <h2 id="h-id" class="gold">Pokémon</h2>
@@ -390,11 +407,6 @@ details.set .cov{padding:0 10px 10px}
       </div>
     </section>
     </div>
-    <aside class="panel mucol" aria-label="Matchups for slots 4 to 6">
-      <h2 class="mint">Matchups <span class="slots">Slots 4–6</span></h2>
-      <p class="meta muscope" aria-hidden="true">&nbsp;</p>
-      <div class="mustack" id="muRight"></div>
-    </aside>
     <section class="panel full" aria-labelledby="h-ins">
       <div class="ins-head">
         <div>
@@ -403,6 +415,8 @@ details.set .cov{padding:0 10px 10px}
         </div>
         <div class="actions">
           <button type="button" id="btnAddGames">Upload replays</button>
+          <button type="button" class="ghost" id="btnBackup">Back up log</button>
+          <button type="button" class="ghost" id="btnRestore">Restore log</button>
           <button type="button" class="ghost" id="btnExample">Load example data</button>
           <button type="button" class="warn" id="btnClearGames">Clear match data</button>
         </div>
@@ -453,6 +467,12 @@ A1,1,W,Rillaboom,Arcanine-Hisui,Gholdengo,Salamence,Pelipper,Archaludon,Pelipper
   <h3 id="vTitle">Replay</h3>
   <div id="vBody"></div>
   <div class="dlgact"><button class="ghost" type="button" onclick="this.closest('dialog').close()">Close</button></div>
+</dialog>
+<dialog id="bdlg">
+  <h3 id="bTitle">Back up match log</h3>
+  <p class="meta" id="bHelp" style="margin:0 0 8px"></p>
+  <textarea id="bText" spellcheck="false" style="min-height:220px"></textarea>
+  <div class="dlgact"><button class="ghost" type="button" id="bClose">Close</button><button type="button" id="bCopy">Copy</button><button type="button" id="bLoad">Restore</button></div>
 </dialog>
 <div class="toast" id="toast" role="status"></div>
 
@@ -822,7 +842,7 @@ function commit(light){save();if(light){renderStats();renderTeam();return;}rende
 function renderTeam(){document.getElementById('team').innerHTML=state.team.map((p,i)=>{const s=spOf(p),v=shown(p);
   return `<button class="slot${s?'':' empty'}" data-i="${i}" aria-current="${i===state.active}" aria-label="Slot ${i+1}${s?': '+esc(s.n):' (empty)'}"><span class="idx">${i+1}</span>${miniConst(v,p.shiny)}
   <span class="nm" style="${s?`color:${TC[v.t[0]]}`:''}">${s?esc(p.nick||s.n):'Add Pokémon'}${p.shiny?' <span style="color:var(--moon)">✦</span>':''}</span><span class="it">${s?(esc(p.item)||'No item'):'&nbsp;'}</span></button>`}).join('');}
-document.getElementById('team').addEventListener('click',e=>{const b=e.target.closest('.slot');if(b){state.active=+b.dataset.i;save();render();}});
+document.getElementById('team').addEventListener('click',e=>{const b=e.target.closest('.slot');if(b){ovEditing=false;state.active=+b.dataset.i;save();render();}});
 
 function renderStats(){const p=cur(),v=shown(p),st=calc(p,v),nm=natureMod(p.nature),c=CAP[state.format],ch=isChamp();
   const bst=v?v.s.reduce((a,b)=>a+b,0):0;document.getElementById('bst').innerHTML=v?`${esc(v.n)} · Base stat total <b>${bst}</b> · Level ${ch?50:p.level}`:'Pick a Pokémon to see its stats.';
@@ -867,12 +887,12 @@ function render(){const p=cur(),s=spOf(p),v=shown(p),mi=megaIdx(p);
       const stab=v&&v.t.includes(mt)&&m[2]!=='X';const effp=m[3]?Math.floor(m[3]*(conv?1.2:1)*(stab?1.5:1)):0;
       card.innerHTML=`<span class="mvbadge"><svg viewBox="-18 -18 36 36" aria-hidden="true">${glyph(mt,'#fff')}</svg></span>
         <span class="mvtext"><span class="mvname">${esc(m[0])}</span>
-          <span class="mvstats">${m[3]?`<span><b>${m[3]}</b> pow</span>`:''}${m[4]?`<span><b>${m[4]}%</b> acc</span>`:'<span>Never misses</span>'}<span><b>${m[5]}</b> PP</span></span></span>
+          <span class="mvstats">${m[3]?`<span><b>${m[3]}</b> pow</span>`:''}${m[4]&&curAb!=='No Guard'?`<span><b>${m[4]}%</b> acc</span>`:`<span>${m[4]?'No Guard: never misses':'Never misses'}</span>`}<span><b>${m[5]}</b> PP</span></span></span>
         <span class="mvcat" title="${catName(m[2])}">${catIcon(m[2])}<small>${catName(m[2])}</small></span>
         <span class="mvtags">${conv?`<span class="stab" title="${esc(curAb)} turns Normal moves ${conv}-type with 1.2× power">${esc(curAb)}</span>`:''}${stab?'<span class="stab" title="Same-type attack bonus: 1.5× power">STAB</span>':''}</span>`;
       document.getElementById('mvi'+k).innerHTML=`${conv?`<span style="color:${c}">${esc(curAb)} makes it ${conv}-type.</span> `:''}${(stab||conv)&&m[3]?`<span class="effpow">Effective power ${effp}.</span> `:''}${esc(m[6]||'')}`;}
     else{wrap.style.removeProperty('--mc');wrap.classList.remove('has');card.innerHTML=`<span class="mvempty">＋ Choose move ${k+1}</span>`;document.getElementById('mvi'+k).innerHTML='';}}
-  renderStats();renderMatchups(currentGames());}
+  renderStats();renderOverview();}
 
 document.getElementById('btnClear').onclick=()=>{state.team[state.active]=blank();commit();toast('Slot cleared');};
 
@@ -1172,7 +1192,7 @@ function renderFolders(){const el=document.getElementById('folders');const all=m
   if(sel){document.getElementById('renFolder').onclick=()=>{const n=prompt('Rename folder',sel.name);if(!n||!n.trim())return;sel.name=n.trim();saveM();renderInsights();toast('Folder renamed');};
     document.getElementById('delFolder').onclick=()=>{if(!confirm(`Delete “${sel.name}”? Its games stay in your log, just not in a folder.`))return;matches.games.forEach(g=>{if(g.folder===sel.id)g.folder='';});matches.folders=matches.folders.filter(f=>f.id!==sel.id);folderView='all';saveM();renderInsights();toast('Folder deleted');};}}
 function renderInsights(){const el=document.getElementById('insights');document.getElementById('exFlag').hidden=!matches.example||!matches.games.length;
-  if(!Array.isArray(matches.folders))matches.folders=[];renderFolders();renderMatchups(currentGames());backfillKOs();
+  if(!Array.isArray(matches.folders))matches.folders=[];renderFolders();renderOverview();backfillKOs();
   const tk=teamKeys();const ALL=matches.games.map((g,i)=>({...g,_i:i,leads:g.leads.map(n=>canon(n,tk)),back:(g.back||[]).map(n=>canon(n,tk)),oppLeads:(g.oppLeads||[]).map(s=>String(s).trim()),oppTeam:g.oppTeam||[]}));
   const G=folderView==='all'?ALL:ALL.filter(g=>(g.folder||'')===(folderView==='__none'?'':folderView));
   if(!ALL.length){el.innerHTML=`<div class="empty-ins">No games logged yet. Choose <b>Upload replays</b> to add Showdown replay files, or load the example data to see how the boxes work.</div>`;return;}
@@ -1233,14 +1253,97 @@ document.getElementById('btnExample').onclick=()=>{const mons=state.team.map(p=>
       games.push({match:'EX'+m,game:gn,win,leads:four.slice(0,2),back:four.slice(2,4),oppLeads:ol.slice(0,2),oppTeam:ol,arch:a});}}
   matches={games,example:true,folders:matches.folders||[]};saveM();renderInsights();toast('Example data loaded');};
 
+
+/* ---------- full backup / restore of the match log (games, folders, knockouts) ---------- */
+const bdlg=document.getElementById('bdlg'),btext=document.getElementById('bText');
+document.getElementById('btnBackup').onclick=()=>{document.getElementById('bTitle').textContent='Back up match log';
+  document.getElementById('bHelp').textContent='Copy this text and keep it somewhere safe, or paste it into Restore log on another copy of the page. Replay files themselves are not included.';
+  btext.value=JSON.stringify({starlight:1,games:matches.games.map(({file,...g})=>g),folders:matches.folders||[],player:matches.player||''});document.getElementById('bCopy').hidden=false;document.getElementById('bLoad').hidden=true;bdlg.showModal();};
+document.getElementById('btnRestore').onclick=()=>{document.getElementById('bTitle').textContent='Restore match log';
+  document.getElementById('bHelp').textContent='Paste a backup. Games already in your log are skipped, and folders are merged.';
+  btext.value='';document.getElementById('bCopy').hidden=true;document.getElementById('bLoad').hidden=false;bdlg.showModal();btext.focus();};
+document.getElementById('bClose').onclick=()=>bdlg.close();
+document.getElementById('bCopy').onclick=async()=>{try{await navigator.clipboard.writeText(btext.value);toast('Backup copied');}catch(e){btext.select();toast('Select all and copy');}};
+document.getElementById('bLoad').onclick=()=>{let d;try{d=JSON.parse(btext.value.trim());}catch(e){toast('That backup could not be read');return;}
+  if(!d||!Array.isArray(d.games)){toast('That backup could not be read');return;}
+  if(matches.example)matches={games:[],example:false,folders:matches.folders||[]};
+  (d.folders||[]).forEach(f=>{if(f&&f.id&&!matches.folders.some(x=>x.id===f.id))matches.folders.push({id:f.id,name:f.name||'Folder'});});
+  const have=new Set(matches.games.map(g=>g.replay||JSON.stringify([g.match,g.game,g.leads])));let n=0;
+  d.games.forEach(g=>{const k=g.replay||JSON.stringify([g.match,g.game,g.leads]);if(!have.has(k)&&Array.isArray(g.leads)){matches.games.push(g);have.add(k);n++;}});
+  if(d.player&&!matches.player)matches.player=d.player;saveM();bdlg.close();renderInsights();toast(n?`Restored ${n} game${n>1?'s':''}`:'Those games are already in your log');};
+
+
+/* ================= OVERVIEW (3 paragraphs per Pokémon) ================= */
+const DEFAULT_OV={"Raichu": ["Mega Raichu Y is an offensive powerhouse with everything it needs to thrive. Its perfectly accurate Zap Cannon from 160 base Sp. Atk makes it one of the most feared attacks for teams without any immunity. It also has the fastest Fake Out in the current metagame to provide further support, along with its pre-Mega ability, Lightning Rod, to absorb incoming Electric-type attacks, giving it a Sp. Atk boost. It takes on some of the most popular Pokémon such as Mega Salamence, Mega Gengar, Gholdengo, and with defense investment, Kingambit. It is an absolute thorn to team compositions that are reliant on outspeeding the opponent thanks to the paralysis it provides.", "However, opposing Electric-, Grass-, and Ground-types prove problematic for Mega Raichu Y as they can tank its Zap Cannon, ignorant of its paralysis bar Grass-types. With prominent threats such as opposing Mega Raichu Y, Rillaboom, and Mega Garchomp Z (pre-Mega), it is often difficult to click Zap Cannon even against Electric-weak targets. It also has pathetic defenses, so if it does not knock out the opposition, it is likely KOed. This is especially critical against specially bulky Pokémon such as Sylveon, who can tank Zap Cannon before taking Mega Raichu Y out with Pixilate Hyper Voice, and priority users such as Arcanine-Hisui and Rillaboom which can pick off Mega Raichu Y before it even has a chance to attack.", "On this team, Mega Raichu Y is best sent in as a lead thanks to its frailty. It loves being paired with Gholdengo in the lead, who can set up a Nasty Plot while Mega Raichu Y pins an opponent down with Fake Out. Powerful but slow attackers appreciate Mega Raichu Y's ability to paralyze opponents. As such, Arcanine-Hisui is a great late-game teammate to clean up weakened opponents, along with Sylveon, whose spread Pixilate Hyper Voice decimates even bulky foes despite a less than stellar Sp. Atk stat. The aforementioned four are the primary squadron for facing many teams, as they provide a stable balance between power, bulk, and speed. Overall, Mega Raichu Y is an excellent choice and contributes much to the team's success."], "Gholdengo": ["Gholdengo is the team's most dependable special attacker. Good as Gold makes it immune to status moves aimed at it, so moves like Taunt, Will-O-Wisp, Spore, and Thunder Wave can never stop it from setting up, and its Steel/Ghost typing makes it immune to Normal, Fighting, and Poison attacks. After a single Nasty Plot, Life Orb Make It Rain hits both opponents hard enough to sweep, and the +2 boost cancels out the Sp. Atk drop that Make It Rain causes. Shadow Ball rounds out its coverage against opposing Ghosts, including mirror Gholdengo. In your replays it knocked out Primarina twice along with an opposing Raichu and Gholdengo.", "Fire- and Ground-type attacks are its biggest problems, and spread Fire moves are the worst of all. Mega Camerupt's Heat Wave knocked it out on turn 1 of your Game 1 loss to gentlemangarby before it could act, and any Fire attacker, including Incineroar and opposing Arcanine-Hisui, threatens it the same way. Dark- and Ghost-type attacks like Kingambit's or an opposing Gholdengo's Shadow Ball are also super effective. Fake Out denies it the free turn it needs for Nasty Plot, and without a boost, each Make It Rain leaves it weaker than the last.", "On this team, Gholdengo is at its best as a lead next to Mega Raichu Y, whose Fake Out buys the turn for Nasty Plot while Lightning Rod keeps Electric attacks away from both. It is also a strong back-line closer: against zefhkb505 it came in after both leads fell and finished the game with Make It Rain and Shadow Ball. Defensively, it covers Sylveon and Mega Salamence by walling Poison, Steel, Fairy, and Dragon attacks. Avoid bringing it alongside Rillaboom into Fire-heavy teams, since both are weak to Fire, and lean on Arcanine-Hisui or Mega Salamence, who resist Fire, in those matchups."], "Arcanine-Hisui": ["Arcanine-Hisui has been the team's MVP, winning all four games it was brought to. Rock Head removes the recoil from both Head Smash and Flare Blitz, so it can throw out 150 and 120 power STAB attacks every turn without wearing itself down, and full Attack and Speed investment with a Jolly nature lets it outspeed and overpower much of the format. Extreme Speed gives it +2 priority to pick off weakened foes, and Focus Sash guarantees it survives a hit at full health. In your replays it knocked out Mega Camerupt, Glimmora, Incineroar, Rillaboom, and Mega Salamence, and Head Smash decided nearly every game it played.", "Its typing is a double-edged sword. Water- and Ground-type attacks hit it four times over, and Fighting- and Rock-type moves are also super effective. Primarina's Aqua Jet and spread Water moves, Earthquake users, and opposing Rillaboom's High Horsepower can remove it quickly once its Sash is broken, and Rain teams are its worst matchup because they boost Water attacks while weakening its Fire moves. Intimidate from Incineroar or Salamence cuts its damage significantly, and Head Smash's 80% accuracy means a single miss can swing a game.", "On this team, Arcanine-Hisui is the late-game cleaner that the rest of the team sets up for. Mega Raichu Y's paralysis and Gholdengo's spread damage leave targets in range of Head Smash and Extreme Speed, and Focus Sash lets it come in late and still take a hit. It also leads well next to Rillaboom, whose Fake Out buys a free Head Smash and whose Grassy Terrain halves the damage from Earthquake and Bulldoze; that lead won your Game 3 against gentlemangarby. It has gone 3–0 with both Sylveon and Rillaboom, and Mega Salamence is its best defensive partner, resisting its Water, Fighting, and Ground weaknesses."], "Sylveon": ["Sylveon brings massive special bulk with 95 HP and 130 Sp. Def, plus one of the strongest spread attacks on the team. Pixilate turns Hyper Voice into a Fairy-type spread move boosted by STAB, the ability, and Fairy Feather, and Hyper Beam becomes a nuke for removing a single target. Pixilate Quick Attack gives it Fairy-type priority to finish off weakened foes, and its typing makes it immune to Dragon moves while resisting Fighting, Bug, and Dark. In your replays it went 3–1 and knocked out Primarina and an opposing Raichu with Hyper Beam.", "Poison- and Steel-types are its biggest threats. Glimmora's Sludge Bomb knocked it out twice across your games, and Steel-types like Gholdengo resist Hyper Voice while hitting back super effectively. At 60 base Speed it moves late without Tailwind or Trick Room, so strong attackers can chip it before it fires, as Incineroar's Flare Blitz did against zefhkb505. Hyper Beam also forces a recharge turn, leaving it a sitting target if the attack fails to knock out.", "On this team, Sylveon is a mid- to late-game wallbreaker that thrives once speed control is in place. Mega Raichu Y's paralysis and Mega Salamence's Tailwind let it fire Hyper Voice before slower foes can respond, and it has gone 3–0 alongside Arcanine-Hisui, who handles Steel-types with Flare Blitz. Gholdengo is its best defensive partner, immune to Poison and resistant to Steel. Avoid bringing it alongside Rillaboom against Poison-heavy teams, since both are weak to Poison."], "Salamence": ["Mega Salamence is the team's second Mega option and its main source of speed control. Before Mega Evolving, it lands Intimidate to weaken physical attackers, and afterward Aerilate turns Hyper Voice into a boosted Flying-type spread attack from 120 base Sp. Atk and 120 base Speed. Draco Meteor provides a powerful single-target hit, and Tailwind doubles the team's Speed for four turns so slower partners like Sylveon and Rillaboom can move first. It is a perfect 3–0 in your replays, knocking out Farigiraf and Rillaboom with Hyper Voice.", "Ice-type attacks hit it four times over, and Rock-, Dragon-, and Fairy-type moves are also super effective. Glimmora's Power Gem took it out in your games, and a Nasty Plot Gholdengo out-damaged it with Make It Rain against zefhkb505. Opposing Sylveon and other Fairy-types threaten it with boosted Hyper Voice, and Draco Meteor's Sp. Atk drop makes repeated use costly. Most importantly, it shares the team's Mega slot with Raichu, so bringing both means one of them stays un-evolved.", "On this team, Mega Salamence is the Mega of choice when Mega Raichu Y's matchup is poor, such as against Grass- or Ground-heavy teams or an opposing Raichu. Leading with it and setting Tailwind on turn 1 lets Sylveon and Rillaboom outspeed teams they normally can't, and its Intimidate softens physical leads before it Mega Evolves. It has won all three of its games alongside Arcanine-Hisui, and Gholdengo is its best defensive partner, resisting its Ice, Rock, Dragon, and Fairy weaknesses. Avoid relying on it with Arcanine-Hisui against Rock-type attackers, since both are weak to Rock."], "Rillaboom": ["Rillaboom brings the team's best mix of utility and priority. Grassy Surge sets Grassy Terrain the moment it enters, powering up its Grass moves, healing the team a little each turn, and giving Grassy Glide +1 priority. Fake Out creates free turns for its partner, and Miracle Seed Wood Hammer from 125 base Attack hits bulky targets hard, while High Horsepower covers Fire- and Steel-types. In your replays it went 3–1, knocking out Farigiraf and Mega Camerupt with Wood Hammer.", "Fire-, Ice-, Poison-, Flying-, and Bug-type attacks are all super effective, so spread moves like Heat Wave and Poison attackers like Glimmora threaten it from either side of the field. Wood Hammer's recoil wears it down quickly, and Intimidate or an opposing Fake Out blunts its early momentum. Mega Camerupt, Glimmora, Primarina, and Gholdengo have each knocked it out in your games, and an opposing Rillaboom or another terrain setter can take its Grassy Terrain away.", "On this team, Rillaboom is the flexible lead. Fake Out plus Grassy Terrain supports Arcanine-Hisui, since terrain halves the damage from Earthquake and Bulldoze and Grassy Glide finishes off anything Head Smash leaves standing; the pair is 3–0 together in your replays. It also pairs well with Mega Salamence, whose Tailwind lets it attack before faster threats. Arcanine-Hisui is its best defensive partner, resisting its Fire, Ice, Poison, Flying, and Bug weaknesses, while bringing it with Gholdengo into Fire-heavy teams is risky because both are weak to Fire."]};
+let OVS={};try{OVS=JSON.parse(localStorage.getItem('starlight-overviews-v1')||'{}')||{};}catch(e){}
+let SAMPLE=null,ovEditing=false,ovBusy=false;
+const ovKey=p=>spOf(p)?spOf(p).n:'';
+function saveOV(){try{localStorage.setItem('starlight-overviews-v1',JSON.stringify(OVS))}catch(e){}if(DB&&UID){clearTimeout(pending.ov);pending.ov=setTimeout(()=>DB.doc(`data/users/${UID}/overviews`).set({items:JSON.parse(JSON.stringify(OVS))}).catch(()=>{}),600);}}
+/* fallback written from the logged games when nothing has been saved for a species */
+function autoOverview(p,idx,G){const html=scoutParts(p,idx,G);return html;}
+function scoutParts(p,idx,G){const s=spOf(p),nm=s.n;const tk=teamKeys();const br=G.filter(g=>[...g.leads,...g.back].includes(nm));
+  const good=new Map(),bad=new Map();for(const g of br)for(const k of (g.kos||[])){const a=canon(k.a,tk),tg=canon(k.t,tk);
+    if(k.mine&&a===nm){const e=good.get(k.t)||{n:0,m:new Set()};e.n++;e.m.add(k.m);good.set(k.t,e);}
+    if(!k.mine&&tg===nm){const e=bad.get(k.a)||{n:0,m:new Set()};e.n++;e.m.add(k.m);bad.set(k.a,e);}}
+  const full=scouting(p,idx,G,good,bad,br).replace(/^<p class="scout">|<\/p>$/g,'');
+  const sents=full.split(/(?<=\.)\s+(?=[A-Z<])/);
+  const p1=sents.filter(x=>/best work|has come in|hasn't been brought|strongest/.test(x)).join(' ');
+  const p2=sents.filter(x=>/taken out|Nothing has knocked|archetype to watch|flips that|careful against|weakest/.test(x)).join(' ');
+  const p3=sents.filter(x=>/partner|Be careful bringing|flexible partner/.test(x)).join(' ');
+  return [p1,p2,p3].map(x=>x||'Not enough games yet to say much here.');}
+function brief(p,idx,G){/* compact facts sent to Claude for a redraft */
+  const s=spOf(p),v=shown(p),nm=s.n,tk=teamKeys();const br=G.filter(g=>[...g.leads,...g.back].includes(nm));const w=br.filter(g=>g.win).length;
+  const kos=[],deaths=[];br.forEach(g=>(g.kos||[]).forEach(k=>{if(k.mine&&canon(k.a,tk)===nm)kos.push(`${k.t} (${k.m})`);if(!k.mine&&canon(k.t,tk)===nm)deaths.push(`${k.a} (${k.m})`);}));
+  const arch={};br.forEach(g=>{const a=g.arch||'Untagged';arch[a]=arch[a]||[0,0];arch[a][1]++;if(g.win)arch[a][0]++;});
+  const partners={};br.forEach(g=>[...g.leads,...g.back].filter(x=>x!==nm).forEach(x=>{partners[x]=partners[x]||[0,0];partners[x][1]++;if(g.win)partners[x][0]++;}));
+  const led=br.filter(g=>g.leads.includes(nm)).length;
+  const team=state.team.map(q=>{const qs=spOf(q),qv=shown(q);return qs?`${qs.n}${qv!==qs?` (Mega: ${qv.n})`:''} @ ${q.item||'no item'}, ${q.ability}, ${q.nature}; moves: ${q.moves.filter(Boolean).join(', ')}`:'';}).filter(Boolean);
+  return {pokemon:nm,shownForm:v.n,types:v.t,baseStats:Object.fromEntries(['HP','Atk','Def','SpA','SpD','Spe'].map((k,i)=>[k,v.s[i]])),ability:p.ability,megaAbility:v!==s?v.a[0]:null,item:p.item,nature:p.nature,statPoints:p.evs,moves:p.moves.filter(Boolean),
+    games:{logged:G.length,brought:br.length,wins:w,led},knockedOut:kos,knockedOutBy:deaths,archetypes:arch,partners,team};}
+async function draftOverview(){if(!SAMPLE||ovBusy)return;const p=cur();if(!spOf(p))return;const idx=state.active;const G=currentGames();const key=ovKey(p);
+  ovBusy=true;renderOverview();
+  const example=DEFAULT_OV['Raichu'].join('\n\n');
+  const prompt=`You write team-specific analysis for a competitive Pokémon Champions doubles player (VGC 2026 Regulation M-C, best-of-three, one Mega Evolution per battle, Champions stat points instead of EVs).
+Write an overview of ${key} as exactly three paragraphs:
+1. Pros of using the Pokémon: what makes it strong, its key moves, ability and stats, and what it beats.
+2. Counters and weaknesses: types, specific Pokémon and archetypes that trouble it, and why.
+3. Its role on this team: when to lead or bring it, its best partners on this specific team and why, and what to avoid.
+Use the replay data below as evidence (records, knockouts, archetypes, partners) and mention specifics from it where they matter. Only state game mechanics you are sure of. Match the tone, depth and length of this example the player wrote:
+"""${example}"""
+Data (JSON): ${JSON.stringify(brief(p,idx,G))}
+Respond with JSON only: {"p1":"...","p2":"...","p3":"..."}`;
+  try{const d=await SAMPLE.json(prompt,{modelTier:'default'});if(d&&d.p1&&d.p2&&d.p3){OVS[key]={p:[d.p1,d.p2,d.p3],src:'claude',games:G.length,at:Date.now()};saveOV();toast('Overview redrafted');}
+    else toast('Claude did not return an overview. Try again.');}
+  catch(e){toast(e&&e.code==='not_granted'?'Claude access was declined for this page':'Could not redraft right now');}
+  ovBusy=false;renderOverview();}
+function renderOverview(){const body=document.getElementById('ovBody');if(!body)return;const p=cur(),s=spOf(p),v=shown(p);
+  document.getElementById('ovDraft').hidden=!SAMPLE||!s;document.getElementById('ovEdit').hidden=!s;document.getElementById('ovEdit').textContent=ovEditing?'Save':'Edit';
+  if(!s){body.innerHTML='<p class="ov-p" style="color:var(--ink-faint)">Pick a Pokémon to see its overview.</p>';return;}
+  const G=currentGames(),nm=s.n,key=ovKey(p);const br=G.filter(g=>[...g.leads,...g.back].includes(nm));const w=br.filter(g=>g.win).length;
+  const saved=OVS[key],def=DEFAULT_OV[key];const paras=saved?saved.p:def?def:autoOverview(p,state.active,G);
+  const src=saved?(saved.src==='you'?'Edited by you.':`Drafted by Claude from ${saved.games} logged game${saved.games===1?'':'s'}.`):def?(key==='Raichu'?'Written by you.':'Written by Claude from your first five replays. Redraft as more games come in.'):'Auto summary from your logged games. Redraft with Claude for a full write-up.';
+  const label=v.n.includes('-Mega')?'Mega '+v.n.replace(/-Mega(-([XYZ]))?$/,(m,a,b)=>b?' '+b:''):(p.nick||nm);
+  const heads=['Strengths','Counters and weaknesses','Role on the team'];
+  body.innerHTML=`<div class="ov-title">${miniConst(v,p.shiny)}<div><div class="ov-name" style="color:${TC[v.t[0]]}">${esc(label)}</div><div class="types" style="margin:4px 0 2px">${v.t.map(pill).join('')}</div>
+      <div class="ov-rec">${br.length?`Brought <b>${br.length}</b> of ${G.length} games · <b>${w}–${br.length-w}</b> (${pct(w/br.length)})`:'Not brought in your logged games yet'}</div></div></div>
+    ${paras.map((t,i)=>`<h3 class="ov-h p${i+1}">${heads[i]}</h3>${ovEditing?`<textarea class="ov-edit" data-i="${i}" aria-label="${heads[i]}">${esc(t.replace(/<[^>]+>/g,''))}</textarea>`:`<p class="ov-p">${/<b/.test(t)?t:esc(t)}</p>`}`).join('')}
+    <p class="ov-src${ovBusy?' busy':''}">${ovBusy?'Claude is reading your games and writing a new overview…':src}${saved&&!ovEditing?' <button type="button" class="ghost" id="ovReset" style="padding:2px 8px;font-size:11px;margin-left:6px">Reset</button>':''}</p>`;
+  const rs=document.getElementById('ovReset');if(rs)rs.onclick=()=>{delete OVS[key];saveOV();renderOverview();toast('Overview reset');};}
+document.getElementById('ovEdit').onclick=()=>{const p=cur();const key=ovKey(p);if(!key)return;
+  if(ovEditing){const ps=[...document.querySelectorAll('.ov-edit')].map(t=>t.value.trim());if(ps.every(Boolean)){OVS[key]={p:ps,src:'you',games:currentGames().length,at:Date.now()};saveOV();toast('Overview saved');}ovEditing=false;}
+  else ovEditing=true;renderOverview();};
+document.getElementById('ovDraft').onclick=draftOverview;
+
 /* ---------- boot ---------- */
 if(!state){const r=importText(STARTER);while(r.team.length<6)r.team.push(blank());state={team:r.team,active:0,format:r.format};}
 if(!state.format)state.format='champions';
 stars();addEventListener('resize',()=>{clearTimeout(window.__st);window.__st=setTimeout(stars,150);});
 render();renderInsights();
 
+(async()=>{try{if(window.claude&&window.claude.use)window.claude.use('sample').then(f=>{SAMPLE=f;renderOverview();}).catch(()=>{});}catch(e){}})();
 (async()=>{try{if(!window.claude||!window.claude.use)return;const [db,user]=await Promise.all([window.claude.use('db'),window.claude.use('user')]);if(!db||!user)return;
   const uid=await user.id();if(!uid)return;DB=db;UID=uid;window.claude.use('assets').then(x=>{ASSETS=x;renderInsights();}).catch(()=>{});
+  db.doc(`data/users/${uid}/overviews`).get().then(o=>{if(o.exists){const d=JSON.parse(JSON.stringify(o.data()));if(d.items){OVS=d.items;renderOverview();}}}).catch(()=>{});
   const b=await db.doc(`data/users/${uid}/builder`).get();
   if(b.exists){const d=JSON.parse(JSON.stringify(b.data()));if(Array.isArray(d.team)&&d.team.length===6){state={team:d.team,active:d.active||0,format:d.format||'champions'};lastPortrait='';render();}}else saveRemote('builder');
   const m=await db.doc(`data/users/${uid}/matches`).get();
