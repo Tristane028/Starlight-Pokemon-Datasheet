@@ -327,6 +327,7 @@ details.set .cov{padding:0 10px 10px}
 .ov-src{margin:16px 0 0;font-size:12px;color:var(--ink-faint)}
 .ov-src.busy{color:var(--moon)}
 @media (max-width:1100px){.grid{grid-template-columns:1fr!important}.overview{contain:none;order:2}.center{order:1}#ovBody{overflow:visible}}
+.pn{font-weight:700}
 .mustack{flex:1;display:flex;flex-direction:column;gap:12px;min-height:0}
 .mustack .mu{aspect-ratio:auto;flex:1 1 0;min-height:0}
 @media (max-width:1180px){.grid{grid-template-columns:1fr 1fr!important}.center{grid-column:1/-1;order:-1}.mucol{contain:none}.mustack .mu{flex:none}}
@@ -1121,6 +1122,12 @@ function aggregate(keyFn,games){const m=new Map();for(const g of games){const k=
 const wrBar=(r,c)=>`<span class="wr">${pct(r)}<i style="--w:${Math.round(r*100)}%;--c:${c||'var(--mint)'}"></i></span>`;
 
 /* insight sections live in this list, so new ones can be added later */
+
+/* Pokémon names colored by their primary type (used across match insights) */
+function typeOfName(n){const i=spById.get(id(n));if(i!==undefined)return SPECIES[i].t[0];const k=id(n).replace(/mega[xyz]?$/,'');const j=spById.get(k);return j!==undefined?SPECIES[j].t[0]:null;}
+const PN=n=>{const t=typeOfName(n);return t?`<span class="pn" style="color:${TC[t]}">${esc(n)}</span>`:esc(n);};
+const PNS=s=>String(s??'').split(/(\s\+\s|\s·\s|,\s)/).map(x=>/^(\s\+\s|\s·\s|,\s)$/.test(x)?esc(x):PN(x)).join('');
+
 const INSIGHTS=[
  {id:'leads',title:'Leads that win most',color:'var(--cyan)',render(G,ctx){
    const rows=aggregate(g=>g.leads.length===2?g.leads.slice().sort().join(' + '):null,G).sort((a,b)=>b.lb-a.lb||b.n-a.n);
@@ -1128,21 +1135,21 @@ const INSIGHTS=[
    let h='';const best=ok[0];
    if(best){const d=Math.round((best.rate-ctx.rate)*100);
      const opp=aggregate(g=>g.oppLeads.length===2?g.oppLeads.slice().sort().join(' + '):null,best.games).filter(x=>x.n>=2).sort((a,b)=>b.rate-a.rate||b.n-a.n);
-     h+=`<p class="callout good"><b>${esc(best.k)}</b> is your most reliable lead: ${best.w}–${best.n-best.w} (${pct(best.rate)}), ${d>=0?d+' points above':(-d)+' points below'} your overall ${pct(ctx.rate)}.${opp[0]?` It does best into ${esc(opp[0].k)} (${opp[0].w}–${opp[0].n-opp[0].w}).`:''}${opp.length>1&&opp[opp.length-1].rate<.5?` Watch out for ${esc(opp[opp.length-1].k)} (${opp[opp.length-1].w}–${opp[opp.length-1].n-opp[opp.length-1].w}).`:''}</p>`;}
+     h+=`<p class="callout good"><b>${PNS(best.k)}</b> is your most reliable lead: ${best.w}–${best.n-best.w} (${pct(best.rate)}), ${d>=0?d+' points above':(-d)+' points below'} your overall ${pct(ctx.rate)}.${opp[0]?` It does best into ${PNS(opp[0].k)} (${opp[0].w}–${opp[0].n-opp[0].w}).`:''}${opp.length>1&&opp[opp.length-1].rate<.5?` Watch out for ${PNS(opp[opp.length-1].k)} (${opp[opp.length-1].w}–${opp[opp.length-1].n-opp[opp.length-1].w}).`:''}</p>`;}
    const worst=ok.slice().sort((a,b)=>(a.rate-b.rate)||b.n-a.n)[0];
-   if(worst&&best&&worst.k!==best.k&&worst.rate<ctx.rate-.1)h+=`<p class="callout bad"><b>${esc(worst.k)}</b> is struggling: ${worst.w}–${worst.n-worst.w} (${pct(worst.rate)}). Consider a different opener in those matchups.</p>`;
+   if(worst&&best&&worst.k!==best.k&&worst.rate<ctx.rate-.1)h+=`<p class="callout bad"><b>${PNS(worst.k)}</b> is struggling: ${worst.w}–${worst.n-worst.w} (${pct(worst.rate)}). Consider a different opener in those matchups.</p>`;
    if(!ok.length)h+=`<p class="lede">No lead has ${minGames}+ games yet, so these are early numbers.</p>`;
-   h+=`<table class="rk"><thead><tr><th>Lead</th><th class="n">Games</th><th class="n">Record</th><th class="n">Win rate</th></tr></thead><tbody>${rows.slice(0,5).map(r=>`<tr style="${r.n<minGames?'opacity:.55':''}"><td>${esc(r.k)}</td><td class="n">${r.n}</td><td class="n">${r.w}–${r.n-r.w}</td><td class="n">${wrBar(r.rate,'var(--cyan)')}</td></tr>`).join('')}</tbody></table>`;
+   h+=`<table class="rk"><thead><tr><th>Lead</th><th class="n">Games</th><th class="n">Record</th><th class="n">Win rate</th></tr></thead><tbody>${rows.slice(0,5).map(r=>`<tr style="${r.n<minGames?'opacity:.55':''}"><td>${PNS(r.k)}</td><td class="n">${r.n}</td><td class="n">${r.w}–${r.n-r.w}</td><td class="n">${wrBar(r.rate,'var(--cyan)')}</td></tr>`).join('')}</tbody></table>`;
    return h;}},
  {id:'fours',title:'Best four-Pokémon brings',color:'var(--rose)',render(G,ctx){
    const rows=aggregate(g=>{const a=[...g.leads,...g.back];return a.length===4?a.slice().sort().join(' · '):null;},G).sort((a,b)=>b.lb-a.lb||b.n-a.n);
    if(!rows.length)return '<p class="lede">Add back Pokémon to each game to see brings.</p>';
    const ok=rows.filter(r=>r.n>=minGames);let h='';
    if(ok[0]){const b=ok[0];const ld=aggregate(g=>g.leads.slice().sort().join(' + '),b.games).sort((x,y)=>y.rate-x.rate||y.n-x.n)[0];
-     h+=`<p class="callout good">Your strongest four is <b>${esc(b.k)}</b> at ${b.w}–${b.n-b.w} (${pct(b.rate)}).${ld?` Its best lead from that group is ${esc(ld.k)} (${ld.w}–${ld.n-ld.w}).`:''}</p>`;}
+     h+=`<p class="callout good">Your strongest four is <b>${PNS(b.k)}</b> at ${b.w}–${b.n-b.w} (${pct(b.rate)}).${ld?` Its best lead from that group is ${PNS(ld.k)} (${ld.w}–${ld.n-ld.w}).`:''}</p>`;}
    const left=state.team.map(p=>spOf(p)?.n).filter(Boolean);const usage=left.map(n=>({n,c:G.filter(g=>[...g.leads,...g.back].includes(n)).length}));
-   const bench=usage.filter(u=>u.c/Math.max(1,G.length)<.25);if(bench.length)h+=`<p class="lede">Rarely brought: ${bench.map(u=>`${esc(u.n)} (${u.c} of ${G.length} games)`).join(', ')}.</p>`;
-   h+=`<table class="rk"><thead><tr><th>Four brought</th><th class="n">Games</th><th class="n">Record</th><th class="n">Win rate</th></tr></thead><tbody>${rows.slice(0,5).map(r=>`<tr style="${r.n<minGames?'opacity:.55':''}"><td>${esc(r.k)}</td><td class="n">${r.n}</td><td class="n">${r.w}–${r.n-r.w}</td><td class="n">${wrBar(r.rate,'var(--rose)')}</td></tr>`).join('')}</tbody></table>`;
+   const bench=usage.filter(u=>u.c/Math.max(1,G.length)<.25);if(bench.length)h+=`<p class="lede">Rarely brought: ${bench.map(u=>`${PNS(u.n)} (${u.c} of ${G.length} games)`).join(', ')}.</p>`;
+   h+=`<table class="rk"><thead><tr><th>Four brought</th><th class="n">Games</th><th class="n">Record</th><th class="n">Win rate</th></tr></thead><tbody>${rows.slice(0,5).map(r=>`<tr style="${r.n<minGames?'opacity:.55':''}"><td>${PNS(r.k)}</td><td class="n">${r.n}</td><td class="n">${r.w}–${r.n-r.w}</td><td class="n">${wrBar(r.rate,'var(--rose)')}</td></tr>`).join('')}</tbody></table>`;
    return h;}},
  {id:'arch',title:'Who wins into which archetypes',color:'var(--mint)',wide:true,render(G,ctx){
    const archs=aggregate(g=>g.arch||'Untagged',G).sort((a,b)=>b.n-a.n);const mons=state.team.map(p=>spOf(p)?.n).filter(Boolean);
@@ -1151,21 +1158,21 @@ const INSIGHTS=[
    let rows='';for(const a of archs){let cells='';
      for(const m of mons){const br=a.games.filter(g=>[...g.leads,...g.back].includes(m));const w=br.filter(g=>g.win).length,n=br.length;
        if(!n){cells+=`<td class="z">–</td>`;continue;}const r=w/n,dl=r-a.rate;let cls='';
-       if(n>=minGames&&dl>=.15){cls='hi';notes.push({good:true,d:dl,t:`<b>${esc(m)}</b> wins ${pct(r)} into <b>${esc(a.k)}</b> (${w}–${n-w}), ${Math.round(dl*100)} points above the team's ${pct(a.rate)} there.`});}
-       else if(n>=minGames&&dl<=-.15){cls='lo';notes.push({good:false,d:-dl,t:`<b>${esc(m)}</b> struggles into <b>${esc(a.k)}</b>: ${pct(r)} (${w}–${n-w}) versus the team's ${pct(a.rate)}.`});}
+       if(n>=minGames&&dl>=.15){cls='hi';notes.push({good:true,d:dl,t:`<b>${PNS(m)}</b> wins ${pct(r)} into <b>${esc(a.k)}</b> (${w}–${n-w}), ${Math.round(dl*100)} points above the team's ${pct(a.rate)} there.`});}
+       else if(n>=minGames&&dl<=-.15){cls='lo';notes.push({good:false,d:-dl,t:`<b>${PNS(m)}</b> struggles into <b>${esc(a.k)}</b>: ${pct(r)} (${w}–${n-w}) versus the team's ${pct(a.rate)}.`});}
        cells+=`<td class="${cls}">${pct(r)}<small>${w}–${n-w}</small></td>`;}
      const ld=aggregate(g=>g.leads.slice().sort().join(' + '),a.games).filter(x=>x.n>=2).sort((x,y)=>y.lb-x.lb)[0];
-     rows+=`<tr><th>${esc(a.k)}</th><td>${a.n}</td><td>${pct(a.rate)}</td>${cells}<td style="text-align:left;font-size:12px">${ld?`${esc(ld.k)} <small>${ld.w}–${ld.n-ld.w}</small>`:'–'}</td></tr>`;}
+     rows+=`<tr><th>${esc(a.k)}</th><td>${a.n}</td><td>${pct(a.rate)}</td>${cells}<td style="text-align:left;font-size:12px">${ld?`${PNS(ld.k)} <small>${ld.w}–${ld.n-ld.w}</small>`:'–'}</td></tr>`;}
    notes.sort((a,b)=>b.d-a.d);
    return `${notes.slice(0,3).map(n=>`<p class="callout ${n.good?'good':'bad'}">${n.t}</p>`).join('')||`<p class="lede">No standout patterns yet with ${minGames}+ games per cell. Keep logging.</p>`}
-   <div class="cov"><table class="mx"><thead><tr><th>Archetype</th><th>Games</th><th>Team win</th>${mons.map(m=>`<th style="text-align:center">${esc(m)}</th>`).join('')}<th>Best lead</th></tr></thead><tbody>${rows}</tbody></table></div>
+   <div class="cov"><table class="mx"><thead><tr><th>Archetype</th><th>Games</th><th>Team win</th>${mons.map(m=>`<th style="text-align:center">${PNS(m)}</th>`).join('')}<th>Best lead</th></tr></thead><tbody>${rows}</tbody></table></div>
    <p class="covnote">Each cell is the win rate when that Pokémon was brought into that archetype. Green and pink mark gaps of 15 points or more from the team's rate, once there are ${minGames}+ games.</p>`;}},
  {id:'log',title:'Game log',color:'var(--moon)',wide:true,render(G){
    const fopts=sel=>`<option value="">No folder</option>${matches.folders.map(f=>`<option value="${f.id}"${f.id===sel?' selected':''}>${esc(f.name)}</option>`).join('')}<option value="__new">New folder…</option>`;
    const groups=[];const byKey=new Map();G.forEach(g=>{const k=g.match||('single-'+g._i);if(!byKey.has(k)){const e={k,games:[]};byKey.set(k,e);groups.push(e);}byKey.get(k).games.push(g);});
    groups.reverse();
    const row=g=>`<tr><td>${g.game?'G'+g.game:''}</td><td style="color:${g.win?'var(--mint)':'var(--rose)'};font-weight:700">${g.win?'Win':'Loss'}</td>
-     <td>${esc(g.leads.join(' + '))}</td><td>${esc(g.back.join(' + '))}</td><td>${esc((g.oppLeads||[]).join(' + '))}</td>
+     <td>${PNS(g.leads.join(' + '))}</td><td>${PNS(g.back.join(' + '))}</td><td>${PNS((g.oppLeads||[]).join(' + '))}</td>
      <td><input type="text" class="archin" data-i="${g._i}" value="${esc(g.arch||'')}" aria-label="Archetype for game" list="archList" style="padding:4px 8px;font-size:13px;width:116px">${g.archAuto?' <small style="color:var(--ink-faint)">auto</small>':''}</td>
      <td><select class="mvf" data-i="${g._i}" aria-label="Folder for game" style="padding:4px 26px 4px 8px;font-size:13px;width:132px">${fopts(g.folder||'')}</select></td>
      <td style="white-space:nowrap">${g.file?`<button type="button" class="viewg" data-i="${g._i}" style="padding:4px 10px;font-size:12px">View replay</button> `:''}<button type="button" class="ghost delg" data-i="${g._i}" style="padding:4px 10px;font-size:12px" aria-label="Remove this game">Remove</button></td></tr>`;
