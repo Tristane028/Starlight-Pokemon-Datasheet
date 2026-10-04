@@ -329,6 +329,82 @@ details.set .cov{padding:0 10px 10px}
 .ov-src.busy{color:var(--moon)}
 @media (max-width:1100px){.grid{grid-template-columns:1fr!important}.overview{contain:none;order:2}.center{order:1}#ovBody{overflow:visible}}
 .pn{font-weight:700}
+
+/* ===== detail pass ===== */
+body::before{content:"";position:fixed;inset:-20% -10%;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 60% 18% at 50% 50%,rgba(170,150,255,.10),transparent 70%),
+             radial-gradient(ellipse 30% 9% at 45% 52%,rgba(255,200,230,.07),transparent 70%),
+             radial-gradient(ellipse 22% 6% at 58% 47%,rgba(127,220,255,.06),transparent 70%);
+  transform:rotate(-24deg)}
+#twinkle{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.moon{box-shadow:0 0 60px 18px rgba(255,230,163,.25),0 0 160px 60px rgba(255,230,163,.08),inset -10px -8px 18px rgba(150,110,40,.35)}
+h1{position:relative;display:inline-block}
+h1::after{content:"";display:block;height:2px;margin-top:10px;width:100%;background:linear-gradient(90deg,var(--moon),rgba(255,194,226,.6),rgba(127,220,255,0));border-radius:2px}
+.hdr-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.hchip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--ink-dim);background:rgba(18,22,66,.7);border:1px solid var(--panel-edge);border-radius:999px;padding:4px 11px}
+.hchip b{color:var(--moon);font-weight:800}
+.hchip i{font-style:normal;color:var(--cyan)}
+.panel{position:relative;box-shadow:0 20px 50px -30px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.05)}
+.panel::before,.panel::after{content:"";position:absolute;width:18px;height:18px;pointer-events:none;border-color:rgba(255,230,163,.45);border-style:solid}
+.panel::before{top:8px;left:8px;border-width:1.5px 0 0 1.5px;border-radius:6px 0 0 0}
+.panel::after{bottom:8px;right:8px;border-width:0 1.5px 1.5px 0;border-radius:0 0 6px 0}
+.panel h2{display:flex;align-items:center;gap:10px}
+.panel h2::before{content:"✦";font-size:13px;opacity:.85}
+.panel h2::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,currentColor,transparent);opacity:.35;min-width:30px}
+.ov-head h2::after,.ins-head h2::after{display:none}
+.slot{min-height:150px;gap:5px;overflow:hidden}
+.slot::after{content:"";position:absolute;inset:auto 0 0 0;height:3px;background:linear-gradient(90deg,var(--c1,transparent),var(--c2,transparent));opacity:.8}
+.slot .stypes{display:flex;gap:3px;flex-wrap:wrap}
+.slot .stypes .pill{font-size:9px;padding:1px 6px}
+.slot .bstbar{height:4px;border-radius:4px;background:rgba(255,255,255,.08);overflow:hidden}
+.slot .bstbar i{display:block;height:100%;background:linear-gradient(90deg,var(--c1),var(--c2))}
+.slot .bstn{font-size:10.5px;color:var(--ink-faint);display:flex;justify-content:space-between}
+.slot .mbadge{position:absolute;top:7px;right:8px;font-size:9px;font-weight:800;letter-spacing:.05em;color:#10122a;background:var(--moon);border-radius:999px;padding:1px 6px}
+.statwrap{display:grid;grid-template-columns:170px minmax(0,1fr);gap:16px;align-items:center;margin:4px 0 10px}
+.radar svg{width:170px;height:170px;display:block}
+.spdbox h4{margin:0 0 6px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--spe)}
+.spd{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.spd div{background:rgba(8,12,40,.6);border:1px solid var(--panel-edge);border-radius:10px;padding:6px 9px;font-size:12px;color:var(--ink-dim)}
+.spd b{display:block;font-family:var(--display);font-size:18px;color:var(--ink)}
+.bulk{margin-top:8px;font-size:12px;color:var(--ink-dim)}.bulk b{color:var(--ink)}
+.ov-chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 2px}
+.ovc{font-size:12px;color:var(--ink-dim);background:rgba(8,12,40,.6);border:1px solid var(--panel-edge);border-radius:8px;padding:4px 9px}
+.ovc b{color:var(--ink);font-weight:700}
+.ov-h{display:flex;align-items:center;gap:8px}
+.ov-h::before{content:"";width:8px;height:8px;border-radius:2px;transform:rotate(45deg);background:currentColor;box-shadow:0 0 8px currentColor}
+.ov-h::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,currentColor,transparent);opacity:.3}
+.ov-p::first-letter{font-family:var(--display);font-size:1.6em;font-weight:800;color:var(--moon);margin-right:1px}
+.kpis{gap:12px}
+.kpi:not(.minr){background:rgba(8,12,40,.6);border:1px solid var(--panel-edge);border-radius:14px;padding:10px 16px;min-width:130px;position:relative;overflow:hidden}
+.kpi:not(.minr)::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:currentColor;opacity:.0}
+.box{position:relative;overflow:hidden}
+.box::before{content:"";position:absolute;inset:0 0 auto 0;height:3px;background:linear-gradient(90deg,var(--bc,var(--cyan)),transparent)}
+.box h3{display:flex;align-items:center;gap:8px}
+.box h3::before{content:"✦";font-size:12px}
+@media (max-width:700px){.statwrap{grid-template-columns:1fr}.radar svg{margin:0 auto}}
+@media (prefers-reduced-motion:reduce){#twinkle{display:none}}
+
+/* ===== scan / analyze animation ===== */
+.scanline{position:absolute;left:0;right:0;top:0;height:90px;pointer-events:none;z-index:3;opacity:0;
+  background:linear-gradient(180deg,transparent,rgba(127,220,255,.10) 70%,rgba(127,220,255,.55) 98%,transparent);border-bottom:1px solid rgba(127,220,255,.8)}
+.scanning .scanline{animation:scanmove 1.15s cubic-bezier(.4,0,.2,1) forwards}
+@keyframes scanmove{0%{opacity:1;transform:translateY(-90px)}90%{opacity:1}100%{opacity:0;transform:translateY(var(--sh,1200px))}}
+.scanstat{display:inline-flex;align-items:center;gap:7px;font:600 11.5px var(--body);letter-spacing:.04em;color:var(--cyan);margin-left:auto;margin-right:8px;opacity:0;transition:opacity .3s}
+.scanstat.on{opacity:1}.scanstat.done{color:var(--mint)}
+.scanstat i{width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor;animation:pulse 0.8s ease-in-out infinite}
+.scanstat.done i{animation:none}
+.scanprog{height:2px;border-radius:2px;background:rgba(127,220,255,.12);margin:-2px 0 8px;overflow:hidden;opacity:0;transition:opacity .4s}
+.scanprog.on{opacity:1}.scanprog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--mint));box-shadow:0 0 8px var(--cyan)}
+.tw-h{color:transparent!important}
+.tw-caret{display:inline-block;width:0;position:relative}
+.tw-caret::after{content:"";position:absolute;left:1px;top:-.95em;width:7px;height:1.05em;background:var(--cyan);box-shadow:0 0 8px var(--cyan);animation:flick 0s}
+.ov-h.pending{opacity:.2;transition:opacity .3s}
+.scanning-stats .bar i{transition:width .9s cubic-bezier(.2,.8,.2,1)}
+.radar svg .rpoly{transform-box:view-box;transform-origin:85px 85px}
+.scanning-stats .radar svg .rpoly{animation:rgrow .9s cubic-bezier(.2,.8,.2,1) both}
+@keyframes rgrow{from{transform:scale(0);opacity:.2}to{transform:scale(1);opacity:1}}
+.decode{color:var(--cyan)!important}
+@media (prefers-reduced-motion:reduce){.scanline,.scanstat,.scanprog{display:none!important}}
 .mustack{flex:1;display:flex;flex-direction:column;gap:12px;min-height:0}
 .mustack .mu{aspect-ratio:auto;flex:1 1 0;min-height:0}
 @media (max-width:1180px){.grid{grid-template-columns:1fr 1fr!important}.center{grid-column:1/-1;order:-1}.mucol{contain:none}.mustack .mu{flex:none}}
@@ -340,12 +416,14 @@ details.set .cov{padding:0 10px 10px}
 </head>
 <body>
 <canvas id="stars" aria-hidden="true"></canvas>
+<canvas id="twinkle" aria-hidden="true"></canvas>
 <div class="moon" aria-hidden="true"></div>
 <div class="wrap">
   <header class="top">
     <div>
       <h1>Pokemon Team Analysis</h1>
       <p class="sub">It often takes a lot of effort to keep track of what works for your competitive Pokemon team and what does not. Build a team and upload replays to get feedback on how your team fares against the current metagame. </p>
+      <div class="hdr-chips" id="hdrChips"></div>
     </div>
     <div class="actions">
       <label class="fmt" for="format">Format <select id="format" style="width:auto"><option value="champions">Champions (stat points)</option><option value="classic">Classic (EVs and IVs)</option></select></label>
@@ -359,8 +437,9 @@ details.set .cov{padding:0 10px 10px}
 
   <main class="grid">
     <section class="panel overview" aria-labelledby="h-ov">
-      <div class="ov-head"><h2 id="h-ov" class="mint">Overview</h2>
+      <div class="ov-head"><h2 id="h-ov" class="mint">Overview</h2><span class="scanstat" id="scanStat" aria-live="polite"><i></i><span></span></span>
         <div class="ov-actions"><button type="button" class="ghost" id="ovEdit">Edit</button><button type="button" id="ovDraft" hidden>Redraft with Claude</button></div></div>
+      <div class="scanprog" id="scanProg"><i></i></div>
       <div id="ovBody"></div>
     </section>
     <div class="center">
@@ -398,6 +477,7 @@ details.set .cov{padding:0 10px 10px}
 
       <h2 id="h-st" style="margin-top:18px">Stats</h2>
       <div class="bst" id="bst"></div>
+      <div class="statwrap"><div class="radar" id="radar"></div><div class="spdbox" id="spdbox"></div></div>
       <div id="stats"></div>
       <div class="evsum">
         <span><span id="evLbl">EVs</span> used: <b id="evUsed">0</b> / <span id="evCap">510</span></span>
@@ -845,9 +925,38 @@ fmtSel.onchange=e=>{const to=e.target.value;if(to===state.format)return;
 function commit(light){save();if(light){renderStats();renderTeam();return;}render();}
 
 function renderTeam(){document.getElementById('team').innerHTML=state.team.map((p,i)=>{const s=spOf(p),v=shown(p);
-  return `<button class="slot${s?'':' empty'}" data-i="${i}" aria-current="${i===state.active}" aria-label="Slot ${i+1}${s?': '+esc(s.n):' (empty)'}"><span class="idx">${i+1}</span>${miniConst(v,p.shiny)}
-  <span class="nm" style="${s?`color:${TC[v.t[0]]}`:''}">${s?esc(p.nick||s.n):'Add Pokémon'}${p.shiny?' <span style="color:var(--moon)">✦</span>':''}</span><span class="it">${s?(esc(p.item)||'No item'):'&nbsp;'}</span></button>`}).join('');}
-document.getElementById('team').addEventListener('click',e=>{const b=e.target.closest('.slot');if(b){ovEditing=false;state.active=+b.dataset.i;save();render();}});
+  if(!s)return `<button class="slot empty" data-i="${i}" aria-current="${i===state.active}" aria-label="Slot ${i+1} (empty)"><span class="idx">${i+1}</span>${miniConst(null)}<span class="nm">Add Pokémon</span><span class="it">&nbsp;</span></button>`;
+  const bst=v.s.reduce((x,y)=>x+y,0),c1=TC[v.t[0]],c2=TC[v.t[1]||v.t[0]];
+  return `<button class="slot" data-i="${i}" aria-current="${i===state.active}" aria-label="Slot ${i+1}: ${esc(s.n)}" style="--c1:${c1};--c2:${c2}"><span class="idx">${i+1}</span>${megaIdx(p)>=0?'<span class="mbadge">MEGA</span>':''}${miniConst(v,p.shiny)}
+  <span class="nm" style="color:${c1}">${esc(p.nick||s.n)}${p.shiny?' <span style="color:var(--moon)">✦</span>':''}</span>
+  <span class="stypes">${v.t.map(pill).join('')}</span>
+  <span class="it">${esc(p.item)||'No item'}</span>
+  <span class="bstn"><span>BST</span><span>${bst}</span></span><span class="bstbar"><i style="width:${Math.min(100,bst/720*100)}%"></i></span></button>`}).join('');
+  renderHeaderChips();}
+function renderHeaderChips(){const el=document.getElementById('hdrChips');if(!el)return;const mons=state.team.filter(p=>spOf(p));
+  const megas=state.team.filter(p=>megaIdx(p)>=0).map(p=>spOf(p).n);const types=new Set();mons.forEach(p=>shown(p).t.forEach(x=>types.add(x)));
+  const sets=new Set(matches.games.map(g=>g.match).filter(Boolean));
+  el.innerHTML=`<span class="hchip"><i>◆</i>Format <b>${isChamp()?'Champions':'Classic'}</b></span><span class="hchip"><i>◆</i>Team <b>${mons.length}/6</b></span>
+   <span class="hchip"><i>◆</i>Types covered <b>${types.size}</b></span>${megas.length?`<span class="hchip"><i>◆</i>Mega options <b>${megas.map(esc).join(' / ')}</b></span>`:''}
+   <span class="hchip"><i>◆</i>Logged <b>${matches.games.length}</b> game${matches.games.length===1?'':'s'}${sets.size?` · <b>${sets.size}</b> set${sets.size===1?'':'s'}`:''}</span>`;}
+document.getElementById('team').addEventListener('click',e=>{const b=e.target.closest('.slot');if(b){ovEditing=false;state.active=+b.dataset.i;save();render();runScan();}});
+
+
+/* radar of final stats plus speed benchmarks */
+function renderStatExtras(p,v,st){const r=document.getElementById('radar'),sb=document.getElementById('spdbox');if(!r)return;
+  if(!v){r.innerHTML='';sb.innerHTML='';return;}
+  const C=85,R=62,max=Math.max(200,...st);const pt=(i,val)=>{const a=-Math.PI/2+i*Math.PI/3,d=R*val/max;return [C+Math.cos(a)*d,C+Math.sin(a)*d];};
+  let rings='';for(const f of [.25,.5,.75,1]){rings+=`<polygon points="${[0,1,2,3,4,5].map(i=>pt(i,max*f).map(x=>x.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="rgba(160,170,255,${f===1?.35:.15})"/>`;}
+  const axes=[0,1,2,3,4,5].map(i=>{const q=pt(i,max);return `<line x1="${C}" y1="${C}" x2="${q[0].toFixed(1)}" y2="${q[1].toFixed(1)}" stroke="rgba(160,170,255,.15)"/>`;}).join('');
+  const poly=st.map((s,i)=>pt(i,s).map(x=>x.toFixed(1)).join(',')).join(' ');
+  const cols=['#ff6b6b','#ffa24c','#ffd84d','#6cb6ff','#7be08f','#ff8ad8'];
+  const dots=st.map((s,i)=>{const q=pt(i,s);return `<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="3.2" fill="${cols[i]}"/>`;}).join('');
+  const labels=STATN.map((n,i)=>{const q=pt(i,max*1.22);return `<text x="${q[0].toFixed(1)}" y="${(q[1]+3).toFixed(1)}" text-anchor="middle" font-size="9.5" font-weight="700" font-family="Figtree,sans-serif" fill="${cols[i]}">${n}</text>`;}).join('');
+  const c1=TC[v.t[0]];
+  r.innerHTML=`<svg viewBox="0 0 170 170" role="img" aria-label="Stat shape"><defs><radialGradient id="rg"><stop offset="0" stop-color="${c1}" stop-opacity=".55"/><stop offset="1" stop-color="${c1}" stop-opacity=".15"/></radialGradient></defs>${rings}${axes}<g class="rpoly"><polygon points="${poly}" fill="url(#rg)" stroke="${c1}" stroke-width="1.6"/>${dots}</g>${labels}</svg>`;
+  const s=st[5];const hp=st[0];
+  sb.innerHTML=`<h4>Speed benchmarks</h4><div class="spd"><div><b>${s}</b>Speed</div><div><b>${Math.floor(s*1.5)}</b>at +1</div><div><b>${s*2}</b>under Tailwind</div><div><b>${Math.floor(s/2)}</b>when paralyzed</div></div>
+   <div class="bulk">Physical bulk <b>${(hp*st[2]).toLocaleString()}</b> · Special bulk <b>${(hp*st[4]).toLocaleString()}</b> <span style="color:var(--ink-faint)">(HP × Def / SpD)</span></div>`;}
 
 function renderStats(){const p=cur(),v=shown(p),st=calc(p,v),nm=natureMod(p.nature),c=CAP[state.format],ch=isChamp();
   const bst=v?v.s.reduce((a,b)=>a+b,0):0;document.getElementById('bst').innerHTML=v?`${esc(v.n)} · Base stat total <b>${bst}</b> · Level ${ch?50:p.level}`:'Pick a Pokémon to see its stats.';
@@ -863,7 +972,7 @@ function renderStats(){const p=cur(),v=shown(p),st=calc(p,v),nm=natureMod(p.natu
   document.getElementById('evLbl').textContent=ch?'Stat points':'EVs';document.getElementById('evCap').textContent=c.total;
   const u=document.getElementById('evUsed');u.textContent=used;u.className=used>c.total?'over':'';
   document.getElementById('levelRow').hidden=ch;
-  lvl.value=p.level;document.getElementById('lvlOut').textContent=p.level;}
+  lvl.value=p.level;document.getElementById('lvlOut').textContent=p.level;renderStatExtras(p,v,st);}
 
 let lastPortrait='';
 function renderPortrait(){const p=cur(),v=shown(p);const key=(v?v.n:'')+'|'+p.shiny+'|'+p.nick+'|'+state.active;
@@ -1203,7 +1312,7 @@ function renderFolders(){const el=document.getElementById('folders');const all=m
   if(sel){document.getElementById('renFolder').onclick=()=>{const n=prompt('Rename folder',sel.name);if(!n||!n.trim())return;sel.name=n.trim();saveM();renderInsights();toast('Folder renamed');};
     document.getElementById('delFolder').onclick=()=>{if(!confirm(`Delete “${sel.name}”? Its games stay in your log, just not in a folder.`))return;matches.games.forEach(g=>{if(g.folder===sel.id)g.folder='';});matches.folders=matches.folders.filter(f=>f.id!==sel.id);folderView='all';saveM();renderInsights();toast('Folder deleted');};}}
 function renderInsights(){const el=document.getElementById('insights');document.getElementById('exFlag').hidden=!matches.example||!matches.games.length;
-  if(!Array.isArray(matches.folders))matches.folders=[];renderFolders();renderOverview();backfillKOs();
+  if(!Array.isArray(matches.folders))matches.folders=[];renderFolders();renderHeaderChips();renderOverview();backfillKOs();
   const tk=teamKeys();const ALL=matches.games.map((g,i)=>({...g,_i:i,leads:g.leads.map(n=>canon(n,tk)),back:(g.back||[]).map(n=>canon(n,tk)),oppLeads:(g.oppLeads||[]).map(s=>String(s).trim()),oppTeam:g.oppTeam||[]}));
   const G=folderView==='all'?ALL:ALL.filter(g=>(g.folder||'')===(folderView==='__none'?'':folderView));
   if(!ALL.length){el.innerHTML=`<div class="empty-ins">No games logged yet. Choose <b>Upload replays</b> to add Showdown replay files, or load the example data to see how the boxes work.</div>`;return;}
@@ -1215,7 +1324,7 @@ function renderInsights(){const el=document.getElementById('insights');document.
   el.innerHTML=`<div class="kpis"><div class="kpi"><b style="color:var(--moon)">${G.length}</b><span>games${folderView!=='all'?` in ${esc(folderView==='__none'?'no folder':folderName(folderView))}`:''}</span></div><div class="kpi"><b style="color:var(--mint)">${pct(rate)}</b><span>game win rate (${w}–${G.length-w})</span></div>
    ${sets.size?`<div class="kpi"><b style="color:var(--cyan)">${sw}–${sl}</b><span>best-of-three sets</span></div>`:''}
    <div class="kpi minr"><label for="minG">Minimum games to rank</label><input type="range" id="minG" min="1" max="10" value="${minGames}" style="--c:var(--moon)"><output>${minGames}</output></div></div>
-   <div class="ins-grid">${INSIGHTS.map(s=>`<div class="box${s.wide?' wide':''}"><h3 style="color:${s.color}">${s.title}</h3>${s.render(G,ctx)}</div>`).join('')}</div>`;
+   <div class="ins-grid">${INSIGHTS.map(s=>`<div class="box${s.wide?' wide':''}" style="--bc:${s.color}"><h3 style="color:${s.color}">${s.title}</h3>${s.render(G,ctx)}</div>`).join('')}</div>`;
   document.getElementById('minG').oninput=e=>{minGames=+e.target.value;renderInsights();document.getElementById('minG').focus();};
   el.querySelectorAll('.archin').forEach(inp=>inp.onchange=()=>{const g=matches.games[+inp.dataset.i];g.arch=inp.value.trim();g.archAuto=false;saveM();renderInsights();});
   el.querySelectorAll('.mvf').forEach(s=>s.onchange=()=>{const g=matches.games[+s.dataset.i];if(s.value==='__new'){const n=prompt('Folder name');if(!n||!n.trim()){renderInsights();return;}g.folder=makeFolder(n);}else g.folder=s.value;saveM();renderInsights();toast('Game moved');});
@@ -1330,7 +1439,7 @@ Respond with JSON only: {"p1":"...","p2":"...","p3":"..."}`;
   ovBusy=false;renderOverview();}
 function renderOverview(){const body=document.getElementById('ovBody');if(!body)return;const p=cur(),s=spOf(p),v=shown(p);
   document.getElementById('ovDraft').hidden=!SAMPLE||!s;document.getElementById('ovEdit').hidden=!s;document.getElementById('ovEdit').textContent=ovEditing?'Save':'Edit';
-  if(!s){body.innerHTML='<p class="ov-p" style="color:var(--ink-faint)">Pick a Pokémon to see its overview.</p>';return;}
+  if(!s){body.innerHTML='<p class="ov-p" style="color:var(--ink-faint)">Pick a Pokémon to see its overview.</p>';if(typeof scheduleFit==='function')scheduleFit();return;}
   const G=currentGames(),nm=s.n,key=ovKey(p);const br=G.filter(g=>[...g.leads,...g.back].includes(nm));const w=br.filter(g=>g.win).length;
   const saved=OVS[key],def=DEFAULT_OV[key];const paras=saved?saved.p:def?def:autoOverview(p,state.active,G);
   const src=saved?(saved.src==='you'?'Edited by you.':`Redrafted by Claude.`):def?(['Raichu','Arcanine-Hisui','Gholdengo'].includes(key)?'Written by you.':'Written by Claude to match your write-ups.'):'Auto summary from your logged games. Redraft with Claude for a full write-up.';
@@ -1338,13 +1447,105 @@ function renderOverview(){const body=document.getElementById('ovBody');if(!body)
   const heads=['Strengths','Counters and weaknesses','Role on the team'];
   body.innerHTML=`<div class="ov-title">${miniConst(v,p.shiny)}<div><div class="ov-name" style="color:${TC[v.t[0]]}">${esc(label)}</div><div class="types" style="margin:4px 0 2px">${v.t.map(pill).join('')}</div>
       <div class="ov-rec">${br.length?`Brought <b>${br.length}</b> of ${G.length} games · <b>${w}–${br.length-w}</b> (${pct(w/br.length)})`:'Not brought in your logged games yet'}</div></div></div>
+    <div class="ov-chips"><span class="ovc">Ability <b>${esc(p.ability||'—')}</b></span>${megaIdx(p)>=0?`<span class="ovc">Mega ability <b>${esc(SPECIES[megaIdx(p)].a[0])}</b></span>`:''}<span class="ovc">Item <b>${esc(p.item||'None')}</b></span><span class="ovc">Nature <b>${esc(p.nature)}</b></span><span class="ovc">Base Speed <b>${v.s[5]}</b></span></div>
     ${paras.map((t,i)=>`<h3 class="ov-h p${i+1}">${heads[i]}</h3>${ovEditing?`<textarea class="ov-edit" data-i="${i}" aria-label="${heads[i]}">${esc(t.replace(/<[^>]+>/g,''))}</textarea>`:`<p class="ov-p">${/<b/.test(t)?t:esc(t)}</p>`}`).join('')}
     ${ovBusy?`<p class="ov-src busy">Claude is writing a new overview…</p>`:saved&&!ovEditing?'<p class="ov-src"><button type="button" class="ghost" id="ovReset" style="padding:2px 8px;font-size:11px">Reset to original</button></p>':''}`;
-  const rs=document.getElementById('ovReset');if(rs)rs.onclick=()=>{delete OVS[key];saveOV();renderOverview();toast('Overview reset');};}
-document.getElementById('ovEdit').onclick=()=>{const p=cur();const key=ovKey(p);if(!key)return;
+  const rs=document.getElementById('ovReset');if(rs)rs.onclick=()=>{delete OVS[key];saveOV();renderOverview();toast('Overview reset');};
+  if(typeof scheduleFit==='function')scheduleFit();
+  if(typeof resumeTypingIfNeeded==='function'&&!ovEditing)resumeTypingIfNeeded();}
+document.getElementById('ovEdit').onclick=()=>{if(!SCAN.done){SCAN.tok++;SCAN.done=true;setStatus('',null);}const p=cur();const key=ovKey(p);if(!key)return;
   if(ovEditing){const ps=[...document.querySelectorAll('.ov-edit')].map(t=>t.value.trim());if(ps.every(Boolean)){OVS[key]={p:ps,src:'you',games:currentGames().length,at:Date.now()};saveOV();toast('Overview saved');}ovEditing=false;}
   else ovEditing=true;renderOverview();};
 document.getElementById('ovDraft').onclick=draftOverview;
+
+
+/* size the two columns so the Overview text fills its panel: the narrower the overview, the taller its text */
+var fitting=false;
+function fitColumns(){const main=document.querySelector('main.grid'),ov=document.querySelector('.overview'),body=document.getElementById('ovBody');if(!main||!ov||!body||fitting)return;
+  if(innerWidth<=1100||ovEditing){main.style.removeProperty('grid-template-columns');return;}
+  fitting=true;const gap=parseFloat(getComputedStyle(main).columnGap)||18;const total=main.clientWidth-gap;
+  const minW=Math.min(380,total*.45),maxW=total*.5;
+  const set=w=>{main.style.setProperty('grid-template-columns',`minmax(0,1fr) ${Math.round(w)}px`,'important');return body.scrollHeight<=body.clientHeight+2;};
+  let lo=minW,hi=maxW;
+  if(!set(hi)){fitting=false;return;}          /* even at half width the text overflows: keep half and let it scroll */
+  if(set(lo)){fitting=false;return;}           /* text fits even at the narrowest width */
+  for(let i=0;i<12;i++){const mid=(lo+hi)/2;if(set(mid))hi=mid;else lo=mid;}
+  set(hi);fitting=false;}
+var fitT;function scheduleFit(){clearTimeout(fitT);fitT=setTimeout(fitColumns,30);}
+addEventListener('resize',scheduleFit);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(scheduleFit);
+
+
+/* animated layer: a few twinkling stars and the occasional shooting star */
+(function(){const c=document.getElementById('twinkle');if(!c||matchMedia('(prefers-reduced-motion: reduce)').matches)return;const x=c.getContext('2d');let W,H,d,stars=[],shoot=null,last=0;
+  function size(){d=devicePixelRatio||1;W=innerWidth;H=innerHeight;c.width=W*d;c.height=H*d;x.setTransform(d,0,0,d,0,0);const r=mul(99);stars=[];for(let i=0;i<Math.round(W*H/22000);i++)stars.push({x:r()*W,y:r()*H,s:r()*1.4+.6,p:r()*6.28,v:.6+r()*1.4,c:['255,255,255','255,230,180','190,220,255'][Math.floor(r()*3)]});}
+  size();addEventListener('resize',size);
+  function frame(t){if(document.hidden){requestAnimationFrame(frame);return;}if(t-last<50){requestAnimationFrame(frame);return;}last=t;x.clearRect(0,0,W,H);
+    for(const s of stars){const a=.25+.75*Math.abs(Math.sin(s.p+t/1000*s.v));x.fillStyle=`rgba(${s.c},${a})`;x.beginPath();x.arc(s.x,s.y,s.s,0,7);x.fill();
+      if(a>.9&&s.s>1.4){x.strokeStyle=`rgba(${s.c},${(a-.9)*4})`;x.lineWidth=.6;x.beginPath();x.moveTo(s.x-5,s.y);x.lineTo(s.x+5,s.y);x.moveTo(s.x,s.y-5);x.lineTo(s.x,s.y+5);x.stroke();}}
+    if(!shoot&&Math.random()<.004)shoot={x:Math.random()*W*.8,y:Math.random()*H*.35,l:0};
+    if(shoot){shoot.l+=14;const len=Math.min(shoot.l,120),hx=shoot.x+shoot.l,hy=shoot.y+shoot.l*.45;const g=x.createLinearGradient(hx-len,hy-len*.45,hx,hy);g.addColorStop(0,'rgba(255,255,255,0)');g.addColorStop(1,'rgba(255,240,210,.9)');
+      x.strokeStyle=g;x.lineWidth=1.6;x.beginPath();x.moveTo(hx-len,hy-len*.45);x.lineTo(hx,hy);x.stroke();if(shoot.l>W*.5)shoot=null;}
+    requestAnimationFrame(frame);}
+  requestAnimationFrame(frame);})();
+
+
+/* ---------- scan effect: stats count up, overview types itself out ---------- */
+let TYPE=null;
+const RM=matchMedia('(prefers-reduced-motion: reduce)');
+let SCAN={tok:0,key:'',pos:0,total:0,done:true};
+function ensureScanlines(){document.querySelectorAll('.center>.panel, .overview').forEach(p=>{if(!p.querySelector(':scope>.scanline')){const s=document.createElement('div');s.className='scanline';p.prepend(s);}});}
+function setStatus(txt,prog,done){const st=document.getElementById('scanStat'),pg=document.getElementById('scanProg');if(!st)return;
+  st.querySelector('span').textContent=txt;st.classList.toggle('on',!!txt);st.classList.toggle('done',!!done);
+  pg.classList.toggle('on',prog!=null&&!done);if(prog!=null)pg.firstElementChild.style.width=Math.round(prog*100)+'%';}
+const ease=x=>1-Math.pow(1-x,3);
+function countUp(el,to,dur,tok,fmt){if(!el)return;const t0=performance.now();el.classList.add('decode');
+  const step=n=>{if(tok!==SCAN.tok){el.textContent=fmt?fmt(to):to;el.classList.remove('decode');return;}const k=Math.min(1,(n-t0)/dur);
+    el.textContent=fmt?fmt(Math.round(to*ease(k))):Math.round(to*ease(k));if(k<1)requestAnimationFrame(step);else{el.textContent=fmt?fmt(to):to;el.classList.remove('decode');}};requestAnimationFrame(step);}
+/* split overview text into a visible part and a transparent part so the layout never shifts while typing */
+function prepTyping(){const body=document.getElementById('ovBody');if(TYPE&&TYPE.nodes.length&&body.contains(TYPE.nodes[0].vis))return TYPE;const nodes=[];
+  body.querySelectorAll('.ov-p').forEach((p,pi)=>{const w=document.createTreeWalker(p,NodeFilter.SHOW_TEXT);const list=[];while(w.nextNode())list.push(w.currentNode);
+    list.forEach(n=>{const full=n.textContent;const vis=document.createElement('span'),hid=document.createElement('span');hid.className='tw-h';hid.textContent=full;
+      n.replaceWith(vis,hid);nodes.push({vis,hid,full,start:0,pi});});});
+  let acc=0;nodes.forEach(o=>{o.start=acc;acc+=o.full.length;});
+  const heads=[...body.querySelectorAll('.ov-h')];const pStart=[];nodes.forEach(o=>{if(pStart[o.pi]===undefined)pStart[o.pi]=o.start;});
+  const caret=document.createElement('span');caret.className='tw-caret';
+  return {nodes,total:acc,heads,pStart,caret};}
+function drawTyping(T,pos){let caretPlaced=false;for(const o of T.nodes){const k=Math.max(0,Math.min(o.full.length,pos-o.start));
+    if(o.vis.textContent.length!==k){o.vis.textContent=o.full.slice(0,k);o.hid.textContent=o.full.slice(k);}
+    if(!caretPlaced&&k<o.full.length){o.vis.after(T.caret);caretPlaced=true;}}
+  if(!caretPlaced)T.caret.remove();
+  T.heads.forEach((h,i)=>h.classList.toggle('pending',(T.pStart[i]??0)>pos));}
+function startTyping(fromPos){const body=document.getElementById('ovBody');if(!body.querySelector('.ov-p')){SCAN.done=true;return;}
+  TYPE=prepTyping();SCAN.total=TYPE.total;SCAN.pos=fromPos||0;const tok=SCAN.tok;const T=TYPE;
+  const dur=Math.min(3200,Math.max(1400,T.total*.75)),p0=SCAN.pos,t0=performance.now();drawTyping(T,SCAN.pos);
+  const tick=now=>{if(tok!==SCAN.tok||T!==TYPE)return;SCAN.pos=Math.min(T.total,Math.round(p0+(T.total-p0)*Math.min(1,(now-t0)/dur)));drawTyping(T,SCAN.pos);
+    setStatus('Analyzing matchups and role…',.35+.65*SCAN.pos/T.total);
+    if(SCAN.pos<T.total)requestAnimationFrame(tick);else finishScan(tok);};requestAnimationFrame(tick);}
+function finishScan(tok){if(tok!==SCAN.tok)return;SCAN.done=true;if(TYPE){drawTyping(TYPE,TYPE.total);TYPE.caret.remove();}
+  setStatus('Analysis complete',1,true);setTimeout(()=>{if(tok===SCAN.tok)setStatus('',null);},1600);}
+/* re-apply typing if the overview is redrawn mid-scan */
+function resumeTypingIfNeeded(){if(SCAN.done||RM.matches)return;if(ovKey(cur())!==SCAN.key){SCAN.done=true;return;}if(SCAN.started)startTyping(SCAN.pos);else{TYPE=prepTyping();drawTyping(TYPE,0);}}
+function runScan(){if(RM.matches)return;const tok=++SCAN.tok;const p=cur();if(!spOf(p)){setStatus('',null);return;}
+  SCAN={tok,key:ovKey(p),pos:0,total:0,done:false,started:false};
+  ensureScanlines();
+  document.querySelectorAll('.center>.panel, .overview').forEach(el=>{el.classList.remove('scanning');el.style.setProperty('--sh',(el.offsetHeight+90)+'px');void el.offsetWidth;el.classList.add('scanning');});
+  setTimeout(()=>document.querySelectorAll('.scanning').forEach(el=>el.classList.remove('scanning')),1300);
+  setStatus('Scanning base stats…',.05);
+  /* stats */
+  const sp=document.querySelector('.center>.panel');sp.classList.add('scanning-stats');
+  for(let i=0;i<6;i++){const bar=document.getElementById('bar'+i);const w=bar.style.width;bar.style.transition='none';bar.style.width='0';void bar.offsetWidth;bar.style.transition='';requestAnimationFrame(()=>{bar.style.width=w;});
+    const f=document.getElementById('f'+i);countUp(f,+f.textContent||0,900+i*60,tok);const b=document.getElementById('b'+i);countUp(b,+b.textContent||0,600,tok);}
+  document.querySelectorAll('#spdbox .spd b').forEach((el,i)=>countUp(el,+el.textContent||0,1000+i*80,tok));
+  document.querySelectorAll('#spdbox .bulk b').forEach(el=>{const v=+el.textContent.replace(/,/g,'')||0;countUp(el,v,1100,tok,x=>x.toLocaleString());});
+  const bstB=document.querySelector('#bst b');if(bstB)countUp(bstB,+bstB.textContent||0,800,tok);
+  setTimeout(()=>{sp.classList.remove('scanning-stats');},1000);
+  setTimeout(()=>{if(tok===SCAN.tok)setStatus('Calculating speed and bulk…',.2);},450);
+  /* overview: hide all text up front, start typing shortly after */
+  const body=document.getElementById('ovBody');body.querySelectorAll('.ov-p').forEach(()=>{});
+  TYPE=prepTyping();drawTyping(TYPE,0);
+  setTimeout(()=>{if(tok!==SCAN.tok)return;SCAN.started=true;startTyping(0);},500);}
+/* clicking the overview while it types finishes it instantly */
+document.getElementById('ovBody').addEventListener('click',()=>{if(!SCAN.done&&TYPE){SCAN.pos=TYPE.total;finishScan(SCAN.tok);}});
 
 /* ---------- boot ---------- */
 if(!state){const r=importText(STARTER);while(r.team.length<6)r.team.push(blank());state={team:r.team,active:0,format:r.format};}
@@ -1352,6 +1553,7 @@ if(!state.format)state.format='champions';
 allMoveItems=MOVES.map((m,i)=>mvItem(i));
 stars();addEventListener('resize',()=>{clearTimeout(window.__st);window.__st=setTimeout(stars,150);});
 render();renderInsights();
+setTimeout(runScan,350);
 
 (async()=>{try{if(window.claude&&window.claude.use)window.claude.use('sample').then(f=>{SAMPLE=f;renderOverview();}).catch(()=>{});}catch(e){}})();
 (async()=>{try{if(!window.claude||!window.claude.use)return;const [db,user]=await Promise.all([window.claude.use('db'),window.claude.use('user')]);if(!db||!user)return;
