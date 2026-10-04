@@ -1517,7 +1517,7 @@ function drawTyping(T,pos){let caretPlaced=false;for(const o of T.nodes){const k
   T.heads.forEach((h,i)=>h.classList.toggle('pending',(T.pStart[i]??0)>pos));}
 function startTyping(fromPos){const body=document.getElementById('ovBody');if(!body.querySelector('.ov-p')){SCAN.done=true;return;}
   TYPE=prepTyping();SCAN.total=TYPE.total;SCAN.pos=fromPos||0;const tok=SCAN.tok;const T=TYPE;
-  const dur=Math.min(40000,Math.max(20000,T.total*8)),p0=SCAN.pos,t0=performance.now();drawTyping(T,SCAN.pos);
+  const dur=Math.min(20000,Math.max(10000,T.total*4)),p0=SCAN.pos,t0=performance.now();drawTyping(T,SCAN.pos);
   const tick=now=>{if(tok!==SCAN.tok||T!==TYPE)return;SCAN.pos=Math.min(T.total,Math.round(p0+(T.total-p0)*Math.min(1,(now-t0)/dur)));drawTyping(T,SCAN.pos);
     setStatus('Analyzing matchups and role…',.35+.65*SCAN.pos/T.total);
     if(SCAN.pos<T.total)requestAnimationFrame(tick);else finishScan(tok);};requestAnimationFrame(tick);}
