@@ -267,6 +267,9 @@ details.set .cov{padding:0 10px 10px}
 .mucol h2{margin:0 0 2px;font-size:18px}
 .mucol .slots{font-family:var(--body);font-size:12px;font-weight:600;color:var(--ink-faint);margin-left:6px}
 .muscope{font-size:12px;margin:0 0 10px;min-height:16px}
+.scout{font-size:13px;line-height:1.55;color:var(--ink-dim);margin:2px 0 0}
+.scout b{color:var(--ink);font-weight:700}
+.mu-bottom{padding-top:6px;border-top:1px solid rgba(160,170,255,.1)}
 .mustack{flex:1;display:flex;flex-direction:column;gap:12px;min-height:0}
 .mustack .mu{aspect-ratio:auto;flex:1 1 0;min-height:0}
 @media (max-width:1180px){.grid{grid-template-columns:1fr 1fr!important}.center{grid-column:1/-1;order:-1}.mucol{contain:none}.mustack .mu{flex:none}}
@@ -871,6 +874,58 @@ async function backfillKOs(){if(backfilling)return;const need=matches.games.filt
 
 /* ---------- per-Pokémon matchup boxes ---------- */
 function typeProfile(s,ability){const weak=[],res=[],imm=[];for(const T of TYPES){let e=eff(T,s.t);if(ABIL_IMMUNE[ability]===T)e=0;if(e===0)imm.push(T);else if(e>1)weak.push([T,e]);else if(e<1)res.push(T);}return {weak,res,imm};}
+
+/* ---------- written scouting report for each Pokémon ---------- */
+const andList=xs=>xs.length<=1?(xs[0]||''):xs.length===2?`${xs[0]} and ${xs[1]}`:`${xs.slice(0,-1).join(', ')}, and ${xs[xs.length-1]}`;
+const rec=(w,n)=>`${w}–${n-w}`;
+const B=s=>`<b>${esc(s)}</b>`;
+const OPP=o=>state.team.some(q=>spOf(q)&&spOf(q).n===o)?`the opposing ${B(o)}`:B(o);
+const ARCH_TYPE={Rain:'Water',Sun:'Fire',Sand:'Rock',Snow:'Ice','Psychic Terrain':'Psychic'};
+function scouting(p,idx,G,good,bad,br){const s=spOf(p),v=shown(p),nm=s.n,label=p.nick||nm;
+  const ab=(megaIdx(p)>=0&&p.showMega!==false)?v.a[0]:p.ability;const tp=typeProfile(v,ab);
+  const team=state.team.map((q,i)=>({q,i,s:spOf(q),v:shown(q)})).filter(x=>x.s&&x.i!==idx);
+  const out=[];
+  /* 1. how it has performed */
+  if(br.length){const w=br.filter(g=>g.win).length;
+    out.push(`${B(label)} has come in ${br.length} of ${G.length} game${G.length>1?'s':''} and is ${rec(w,br.length)} when brought${w===br.length&&br.length>=3?', a perfect record so far':''}.`);}
+  else out.push(`${B(label)} hasn't been brought yet, so this read is based on its typing and speed.`);
+  /* 2. who it beats and who beats it */
+  if(good.size){const top=[...good.entries()].sort((x,y)=>y[1].n-x[1].n).slice(0,3);const moves=[...new Set(top.flatMap(([,e])=>[...e.m]))].filter(Boolean).slice(0,2);
+    out.push(`It does its best work against ${andList(top.map(([o,e])=>`${OPP(o)}${e.n>1?` (${e.n}×)`:''}`))}${moves.length?`, mostly with ${andList(moves.map(m=>B(m)))}`:''}.`);}
+  if(bad.size){const top=[...bad.entries()].sort((x,y)=>y[1].n-x[1].n).slice(0,3);const moves=[...new Set(top.flatMap(([,e])=>[...e.m]))].filter(Boolean).slice(0,2);
+    out.push(`It has been taken out by ${andList(top.map(([o,e])=>`${OPP(o)}${e.n>1?` (${e.n}×)`:''}`))}${moves.length?` through ${andList(moves.map(m=>B(m)))}`:''}, so be careful bringing it into teams built around ${top.length>1?'those threats':'that threat'}.`);}
+  else if(br.length)out.push(`Nothing has knocked it out yet.`);
+  /* 3. archetypes, from results */
+  const arch=new Map();br.forEach(g=>{const k=g.arch||'Untagged';const e=arch.get(k)||{w:0,n:0};e.n++;if(g.win)e.w++;arch.set(k,e);});
+  const al=[...arch.entries()].filter(([k])=>k!=='Untagged').sort((x,y)=>(y[1].w/y[1].n)-(x[1].w/x[1].n)||y[1].n-x[1].n);
+  if(al.length===1)out.push(`All of its games so far have come against ${B(al[0][0])} teams (${rec(al[0][1].w,al[0][1].n)}).`);
+  else if(al.length>1){const [bk,be]=al[0],[wk,we]=al[al.length-1];
+    out.push(be.w/be.n===we.w/we.n?`It has the same results across ${andList(al.map(([k])=>B(k)))} so far.`:`By archetype, it has been strongest into ${B(bk)} (${rec(be.w,be.n)}) and weakest into ${B(wk)} (${rec(we.w,we.n)}).`);}
+  /* 4. archetypes, on paper */
+  const weakSet=new Map(tp.weak);
+  const worstWeather=Object.entries(ARCH_TYPE).filter(([,T])=>weakSet.has(T)).sort((x,y)=>weakSet.get(y[1])-weakSet.get(x[1]))[0];
+  if(worstWeather)out.push(`On paper, ${B(worstWeather[0])} is the archetype to watch, since boosted ${worstWeather[1]} attacks hit ${label} ${weakSet.get(worstWeather[1])>2?'4×':'super effectively'}.`);
+  const spe=v.s[5];
+  if(spe>=95)out.push(`Its ${spe} base Speed is a big part of its value, so ${B('Trick Room')} flips that against it unless you can stall out the turns.`);
+  else if(spe<=65)out.push(`At ${spe} base Speed it welcomes ${B('Trick Room')} but has to be careful against ${B('Tailwind')}.`);
+  /* 5. pairings */
+  const covers=team.map(x=>{const xab=(megaIdx(x.q)>=0&&x.q.showMega!==false)?x.v.a[0]:x.q.ability;
+    const c=tp.weak.map(([T])=>T).filter(T=>eff(T,x.v.t)<1||ABIL_IMMUNE[xab]===T);
+    const both=G.filter(g=>{const a=[...g.leads,...g.back];return a.includes(nm)&&a.includes(x.s.n);});const w=both.filter(g=>g.win).length;
+    const shared=tp.weak.map(([T])=>T).filter(T=>eff(T,x.v.t)>1&&ABIL_IMMUNE[xab]!==T);
+    return {x,c,n:both.length,w,shared,name:x.q.nick||x.s.n};});
+  const defBest=covers.filter(c=>c.c.length).sort((a,b)=>b.c.length-a.c.length||(b.n?b.w/b.n:0)-(a.n?a.w/a.n:0))[0];
+  const dataBest=covers.filter(c=>c.n>=2).sort((a,b)=>wilson(b.w,b.n)-wilson(a.w,a.n))[0];
+  const pair=[];
+  if(dataBest&&dataBest.w/dataBest.n>=.6)pair.push(`Its most successful partner has been ${B(dataBest.name)} (${rec(dataBest.w,dataBest.n)} together)`);
+  if(defBest&&(!dataBest||defBest.name!==dataBest.name||!pair.length))pair.push(`${pair.length?'while ':''}${B(defBest.name)} ${pair.length?'covers':'is its best defensive partner, covering'} its ${andList(defBest.c)} weakness${defBest.c.length>1?'es':''}`);
+  else if(defBest&&dataBest&&defBest.name===dataBest.name)pair.push(`and that pairing also covers its ${andList(defBest.c)} weakness${defBest.c.length>1?'es':''}`);
+  if(pair.length)out.push(pair.join(pair[0].startsWith('Its most')&&pair.length>1?(pair[1].startsWith('and')?' ':', '):' ')+'.');
+  else if(!tp.weak.length)out.push(`It has no weaknesses to cover, which makes it a flexible partner for anyone.`);
+  const sharer=covers.filter(c=>c.shared.length).sort((a,b)=>b.shared.length-a.shared.length)[0];
+  if(sharer)out.push(`Be careful bringing it with ${B(sharer.name)} against ${andList(sharer.shared)} attackers, since both are weak to ${andList(sharer.shared)}.`);
+  return `<p class="scout">${out.join(' ')}</p>`;}
+
 function renderMatchups(G){const tk=teamKeys();
   document.getElementById('muScope').textContent=G.length?`From ${G.length} game${G.length>1?'s':''}${folderView!=='all'?' in '+(folderView==='__none'?'no folder':folderName(folderView)):''}`:'Typing only until games are logged';
   const boxes=state.team.map((p,idx)=>{const s=spOf(p);if(!s)return `<div class="mu"><p class="none">Slot ${idx+1} is empty.</p></div>`;const v=shown(p);const nm=s.n;
@@ -886,8 +941,7 @@ function renderMatchups(G){const tk=teamKeys();
     const ab=(megaIdx(p)>=0&&p.showMega!==false)?v.a[0]:p.ability;const tp=typeProfile(v,ab);
     return `<div class="mu"><div class="mu-top">${miniConst(v,p.shiny)}<div><div class="mu-name" style="color:${TC[v.t[0]]}">${esc(p.nick||nm)}</div><div class="types" style="margin:3px 0">${v.t.map(pill).join('')}</div>
       <div class="mu-rec">${br.length?`Brought <b>${br.length}</b> of ${G.length} · <b>${w}–${br.length-w}</b> (${pct(w/br.length)})`:'Not brought yet'}</div></div></div>
-      <div><h4 class="good">Wins into</h4>${tagList(good,'good')}</div>
-      <div><h4 class="bad">Trouble from</h4>${tagList(bad,'bad')}</div>
+      ${scouting(p,idx,G,good,bad,br)}
       <div class="mu-bottom"><h4 class="typ">Typing</h4>
         <div class="typrow">Weak ${tp.weak.length?tp.weak.map(([T,e])=>e>2?`<span class="pill" style="background:${TC[T]}">${T} ×4</span>`:pill(T)).join(''):'<span>none</span>'}</div>
         <div class="typrow">Resists ${tp.res.length?tp.res.map(pill).join(''):'<span>none</span>'}</div>
