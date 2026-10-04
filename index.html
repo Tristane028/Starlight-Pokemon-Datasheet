@@ -387,7 +387,7 @@ h1::after{content:"";display:block;height:2px;margin-top:10px;width:100%;backgro
 /* ===== scan / analyze animation ===== */
 .scanline{position:absolute;left:0;right:0;top:0;height:90px;pointer-events:none;z-index:3;opacity:0;
   background:linear-gradient(180deg,transparent,rgba(127,220,255,.10) 70%,rgba(127,220,255,.55) 98%,transparent);border-bottom:1px solid rgba(127,220,255,.8)}
-.scanning .scanline{animation:scanmove 1.15s cubic-bezier(.4,0,.2,1) forwards}
+.scanning .scanline{animation:scanmove 1.8s cubic-bezier(.4,0,.2,1) forwards}
 @keyframes scanmove{0%{opacity:1;transform:translateY(-90px)}90%{opacity:1}100%{opacity:0;transform:translateY(var(--sh,1200px))}}
 .scanstat{display:inline-flex;align-items:center;gap:7px;font:600 11.5px var(--body);letter-spacing:.04em;color:var(--cyan);margin-left:auto;margin-right:8px;opacity:0;transition:opacity .3s}
 .scanstat.on{opacity:1}.scanstat.done{color:var(--mint)}
@@ -399,9 +399,9 @@ h1::after{content:"";display:block;height:2px;margin-top:10px;width:100%;backgro
 .tw-caret{display:inline-block;width:0;position:relative}
 .tw-caret::after{content:"";position:absolute;left:1px;top:-.95em;width:7px;height:1.05em;background:var(--cyan);box-shadow:0 0 8px var(--cyan);animation:flick 0s}
 .ov-h.pending{opacity:.2;transition:opacity .3s}
-.scanning-stats .bar i{transition:width .9s cubic-bezier(.2,.8,.2,1)}
+.scanning-stats .bar i{transition:width 1.5s cubic-bezier(.2,.8,.2,1)}
 .radar svg .rpoly{transform-box:view-box;transform-origin:85px 85px}
-.scanning-stats .radar svg .rpoly{animation:rgrow .9s cubic-bezier(.2,.8,.2,1) both}
+.scanning-stats .radar svg .rpoly{animation:rgrow 1.5s cubic-bezier(.2,.8,.2,1) both}
 @keyframes rgrow{from{transform:scale(0);opacity:.2}to{transform:scale(1);opacity:1}}
 .decode{color:var(--cyan)!important}
 @media (prefers-reduced-motion:reduce){.scanline,.scanstat,.scanprog{display:none!important}}
@@ -1517,7 +1517,7 @@ function drawTyping(T,pos){let caretPlaced=false;for(const o of T.nodes){const k
   T.heads.forEach((h,i)=>h.classList.toggle('pending',(T.pStart[i]??0)>pos));}
 function startTyping(fromPos){const body=document.getElementById('ovBody');if(!body.querySelector('.ov-p')){SCAN.done=true;return;}
   TYPE=prepTyping();SCAN.total=TYPE.total;SCAN.pos=fromPos||0;const tok=SCAN.tok;const T=TYPE;
-  const dur=Math.min(3200,Math.max(1400,T.total*.75)),p0=SCAN.pos,t0=performance.now();drawTyping(T,SCAN.pos);
+  const dur=Math.min(10000,Math.max(5000,T.total*2)),p0=SCAN.pos,t0=performance.now();drawTyping(T,SCAN.pos);
   const tick=now=>{if(tok!==SCAN.tok||T!==TYPE)return;SCAN.pos=Math.min(T.total,Math.round(p0+(T.total-p0)*Math.min(1,(now-t0)/dur)));drawTyping(T,SCAN.pos);
     setStatus('Analyzing matchups and role…',.35+.65*SCAN.pos/T.total);
     if(SCAN.pos<T.total)requestAnimationFrame(tick);else finishScan(tok);};requestAnimationFrame(tick);}
@@ -1529,21 +1529,21 @@ function runScan(){if(RM.matches)return;const tok=++SCAN.tok;const p=cur();if(!s
   SCAN={tok,key:ovKey(p),pos:0,total:0,done:false,started:false};
   ensureScanlines();
   document.querySelectorAll('.center>.panel, .overview').forEach(el=>{el.classList.remove('scanning');el.style.setProperty('--sh',(el.offsetHeight+90)+'px');void el.offsetWidth;el.classList.add('scanning');});
-  setTimeout(()=>document.querySelectorAll('.scanning').forEach(el=>el.classList.remove('scanning')),1300);
+  setTimeout(()=>document.querySelectorAll('.scanning').forEach(el=>el.classList.remove('scanning')),2000);
   setStatus('Scanning base stats…',.05);
   /* stats */
   const sp=document.querySelector('.center>.panel');sp.classList.add('scanning-stats');
   for(let i=0;i<6;i++){const bar=document.getElementById('bar'+i);const w=bar.style.width;bar.style.transition='none';bar.style.width='0';void bar.offsetWidth;bar.style.transition='';requestAnimationFrame(()=>{bar.style.width=w;});
-    const f=document.getElementById('f'+i);countUp(f,+f.textContent||0,900+i*60,tok);const b=document.getElementById('b'+i);countUp(b,+b.textContent||0,600,tok);}
-  document.querySelectorAll('#spdbox .spd b').forEach((el,i)=>countUp(el,+el.textContent||0,1000+i*80,tok));
-  document.querySelectorAll('#spdbox .bulk b').forEach(el=>{const v=+el.textContent.replace(/,/g,'')||0;countUp(el,v,1100,tok,x=>x.toLocaleString());});
-  const bstB=document.querySelector('#bst b');if(bstB)countUp(bstB,+bstB.textContent||0,800,tok);
-  setTimeout(()=>{sp.classList.remove('scanning-stats');},1000);
-  setTimeout(()=>{if(tok===SCAN.tok)setStatus('Calculating speed and bulk…',.2);},450);
+    const f=document.getElementById('f'+i);countUp(f,+f.textContent||0,1500+i*90,tok);const b=document.getElementById('b'+i);countUp(b,+b.textContent||0,1000,tok);}
+  document.querySelectorAll('#spdbox .spd b').forEach((el,i)=>countUp(el,+el.textContent||0,1700+i*120,tok));
+  document.querySelectorAll('#spdbox .bulk b').forEach(el=>{const v=+el.textContent.replace(/,/g,'')||0;countUp(el,v,1900,tok,x=>x.toLocaleString());});
+  const bstB=document.querySelector('#bst b');if(bstB)countUp(bstB,+bstB.textContent||0,1300,tok);
+  setTimeout(()=>{sp.classList.remove('scanning-stats');},1700);
+  setTimeout(()=>{if(tok===SCAN.tok)setStatus('Calculating speed and bulk…',.2);},800);
   /* overview: hide all text up front, start typing shortly after */
   const body=document.getElementById('ovBody');body.querySelectorAll('.ov-p').forEach(()=>{});
   TYPE=prepTyping();drawTyping(TYPE,0);
-  setTimeout(()=>{if(tok!==SCAN.tok)return;SCAN.started=true;startTyping(0);},500);}
+  setTimeout(()=>{if(tok!==SCAN.tok)return;SCAN.started=true;startTyping(0);},1100);}
 /* clicking the overview while it types finishes it instantly */
 document.getElementById('ovBody').addEventListener('click',()=>{if(!SCAN.done&&TYPE){SCAN.pos=TYPE.total;finishScan(SCAN.tok);}});
 
