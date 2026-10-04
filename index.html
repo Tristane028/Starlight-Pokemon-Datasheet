@@ -270,6 +270,42 @@ details.set .cov{padding:0 10px 10px}
 .scout{font-size:13px;line-height:1.55;color:var(--ink-dim);margin:2px 0 0}
 .scout b{color:var(--ink);font-weight:700}
 .mu-bottom{padding-top:6px;border-top:1px solid rgba(160,170,255,.1)}
+.moves{grid-template-columns:1fr 1fr!important;gap:12px 14px!important}
+.move{gap:5px!important;justify-items:center}
+.move .f{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.move .cb{width:100%}
+.move .cb input{border-radius:999px;text-align:center;font-weight:700;font-size:14px;padding:11px 18px;background:var(--mc,var(--field));color:var(--mtx,var(--ink));border:2px solid color-mix(in srgb,var(--mc,#8890d0) 60%,#fff 20%);box-shadow:0 0 16px -4px var(--mc,transparent)}
+.move .cb input::placeholder{color:var(--ink-faint);font-weight:500}
+.move .cb.open input,.move .cb input:focus{background:var(--field);color:var(--ink);text-align:left}
+.move .mvinfo{justify-content:center;min-height:16px}
+.scout b.good{color:var(--mint)}
+.scout b.bad{color:#ff7b8a}
+.mvwrap{position:relative;width:100%}
+.move .cb input{height:62px;border-radius:999px!important}
+.mvcard{position:absolute;inset:0;pointer-events:none;border-radius:999px;display:grid;grid-template-columns:46px minmax(0,1fr) auto;align-items:center;gap:10px;padding:0 14px 0 8px;overflow:hidden}
+.mvwrap.has .mvcard{background:radial-gradient(120% 140% at 20% 0%,color-mix(in srgb,var(--mc) 70%,#fff 30%) 0%,var(--mc) 45%,color-mix(in srgb,var(--mc) 65%,#0b0f36 35%) 100%);
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.35),inset 0 -3px 0 rgba(0,0,0,.18),0 0 18px -6px var(--mc);border:2px solid color-mix(in srgb,var(--mc) 60%,#fff 40%)}
+.mvwrap.has .mvcard::after{content:"";position:absolute;top:-30%;left:-20%;width:40%;height:160%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);transform:rotate(18deg);animation:mvshine 6s ease-in-out infinite}
+@keyframes mvshine{0%,70%{left:-30%}100%{left:120%}}
+.mvwrap:not(.has) .mvcard{border:2px dashed rgba(160,170,255,.3);background:rgba(8,12,40,.6);grid-template-columns:1fr;justify-items:center}
+.mvempty{color:var(--ink-faint);font-size:14px;font-weight:600}
+.mvwrap:focus-within .mvcard{display:none}
+.mvwrap.has .cb input{color:transparent;background:var(--field)}
+.mvwrap:focus-within .cb input{color:var(--ink)!important}
+.mvbadge{width:44px;height:44px;border-radius:50%;background:#0d1240;display:grid;place-items:center;box-shadow:0 0 0 2px rgba(255,255,255,.55),0 0 12px -2px var(--mc)}
+.mvbadge svg{width:26px;height:26px;filter:drop-shadow(0 0 3px var(--mc))}
+.mvtext{min-width:0;display:flex;flex-direction:column;gap:2px;color:#10122a}
+.mvname{font-family:var(--display);font-weight:800;font-size:16px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mvstats{display:flex;gap:7px;font-size:11px;font-weight:600;opacity:.82;white-space:nowrap;overflow:hidden}
+.mvstats b{font-weight:800}
+.mvcat{display:flex;flex-direction:column;align-items:center;gap:1px;color:#10122a;opacity:.85}
+.mvcat svg{width:20px;height:20px}
+.mvcat small{font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.mvtags{position:absolute;top:4px;right:46px;display:flex;gap:4px}
+.stab{font-size:8.5px;font-weight:800;letter-spacing:.06em;color:#10122a;background:rgba(255,255,255,.55);border-radius:999px;padding:1px 6px}
+.move .mvinfo{font-size:12px;color:var(--ink-faint);text-align:center;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:34px;padding:0 10px}
+.effpow{color:var(--moon)}
+@media (prefers-reduced-motion:reduce){.mvwrap.has .mvcard::after{animation:none;display:none}}
 .mustack{flex:1;display:flex;flex-direction:column;gap:12px;min-height:0}
 .mustack .mu{aspect-ratio:auto;flex:1 1 0;min-height:0}
 @media (max-width:1180px){.grid{grid-template-columns:1fr 1fr!important}.center{grid-column:1/-1;order:-1}.mucol{contain:none}.mustack .mu{flex:none}}
@@ -310,7 +346,6 @@ details.set .cov{padding:0 10px 10px}
       <div class="hero">
         <div>
           <div class="portrait" id="portrait"></div>
-          <div class="cap" id="portraitCap"></div>
         </div>
         <div>
           <label class="f" for="cbSpecies">Species</label>
@@ -319,33 +354,25 @@ details.set .cov{padding:0 10px 10px}
           <div class="megabar" id="megabar" hidden><span class="seg" role="group" aria-label="Form shown"><button type="button" id="showBase">Base form</button><button type="button" id="showMega">Mega form</button></span></div>
           <div class="meta" id="meta"></div>
           <label class="shinyck"><input type="checkbox" id="shiny"> Shiny</label>
-          <div class="row" style="margin-top:10px">
-            <div><label class="f" for="nick">Nickname</label><input type="text" id="nick" maxlength="18" placeholder="Optional"></div>
+          <div class="row" style="margin-top:10px;gap:8px">
+            <div><label class="f" for="ability">Ability</label><select id="ability"></select></div>
+            <div><label class="f" for="cbItem">Held item</label><div class="cb" id="cbItem"></div></div>
+            <div><label class="f" for="nature">Nature</label><select id="nature"></select></div>
           </div>
         </div>
       </div>
-      <div class="row r2">
-        <div><label class="f" for="ability">Ability</label><select id="ability"></select></div>
-        <div><label class="f" for="cbItem">Held item</label><div class="cb" id="cbItem"></div></div>
-      </div>
-      <div class="row r3">
-        <div><label class="f" for="tera">Tera type</label><select id="tera"></select></div>
-        <div><label class="f" for="nature">Nature</label><select id="nature"></select></div>
-        <div><label class="f" for="gender">Gender</label><select id="gender"><option value="">Any</option><option value="M">Male</option><option value="F">Female</option></select></div>
-      </div>
+      <div hidden aria-hidden="true"><input type="text" id="nick"><select id="tera"></select><select id="gender"><option value=""></option><option value="M"></option><option value="F"></option></select></div>
       <div class="row" id="levelRow">
         <label class="f" for="level">Level</label>
         <div class="fixed" id="lvlFixed" hidden>Level 50 (fixed in Champions)</div>
         <div class="lvl" id="lvlCtl"><input type="range" id="level" min="1" max="100" style="--c:var(--moon)"><output id="lvlOut"></output>
           <button class="ghost" type="button" data-lv="50">50</button><button class="ghost" type="button" data-lv="100">100</button></div>
       </div>
-      <h2 class="rose" style="margin-top:16px">Moves</h2>
+      <h2 class="rose" style="margin-top:6px">Moves</h2>
       <div class="moves" id="moves"></div>
       <label class="check"><input type="checkbox" id="allMoves"> Show every move, not just ones this Pokémon learns</label>
-    </section>
 
-    <section class="panel" aria-labelledby="h-st">
-      <h2 id="h-st">Stats</h2>
+      <h2 id="h-st" style="margin-top:18px">Stats</h2>
       <div class="bst" id="bst"></div>
       <div id="stats"></div>
       <div class="evsum">
@@ -357,7 +384,6 @@ details.set .cov{padding:0 10px 10px}
         </span>
       </div>
     </section>
-
     </div>
     <aside class="panel mucol" aria-label="Matchups for slots 4 to 6">
       <h2 class="mint">Matchups <span class="slots">Slots 4–6</span></h2>
@@ -615,11 +641,16 @@ function glyph(t,c){const F=`fill="${c}"`,S=`fill="none" stroke="${c}" stroke-wi
   case 'Rock':return `<polygon ${F} points="-12,4 -6,-10 6,-12 13,-2 9,11 -6,12"/><path d="M-6 -10 L0 0 L9 11 M0 0 L13 -2" stroke="rgba(6,10,34,.45)" stroke-width="1.4" fill="none"/>`;
   case 'Ghost':return `<path ${F} d="M-10 14 L-10 -3 A10 10 0 0 1 10 -3 L10 14 L5 10 L0 14 L-5 10 Z"/><circle cx="-4" cy="-2" r="2.2" fill="rgba(6,10,34,.7)"/><circle cx="4" cy="-2" r="2.2" fill="rgba(6,10,34,.7)"/>`;
   case 'Dragon':return `<g ${S} stroke-width="3"><path d="M-10 13 C-12 0 -6 -9 2 -14"/><path d="M-2 14 C-3 2 3 -6 10 -10"/><path d="M6 14 C6 6 10 0 14 -3"/></g>`;
-  case 'Dark':return `<path ${F} d="M4 -14 A14 14 0 1 0 4 14 A11 11 0 1 1 4 -14Z"/>`;
+  case 'Dark':return `<path ${F} d="M3.73 -12.45 A13 13 0 1 0 11.59 5.88 A10 10 0 1 1 3.73 -12.45Z"/>`;
   case 'Steel':return `<polygon ${F} points="0,-14 12,-7 12,7 0,14 -12,7 -12,-7"/><circle cx="0" cy="0" r="5" fill="rgba(6,10,34,.7)"/>`;
   case 'Fairy':return `<path ${F} d="M0 -15 Q2 -2 15 0 Q2 2 0 15 Q-2 2 -15 0 Q-2 -2 0 -15Z"/><circle cx="9" cy="-9" r="2" ${F}/>`;
   default:return `<circle ${S} cx="0" cy="0" r="11"/><circle ${F} cx="0" cy="0" r="4"/>`;
   }}
+
+
+function catIcon(c){if(c==='P')return `<svg viewBox="-12 -12 24 24"><polygon points="0,-11 3,-4 10,-6 5,0 10,6 3,4 0,11 -3,4 -10,6 -5,0 -10,-6 -3,-4" fill="currentColor"/></svg>`;
+  if(c==='S')return `<svg viewBox="-12 -12 24 24"><circle r="10" fill="none" stroke="currentColor" stroke-width="2"/><circle r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><circle r="1.8" fill="currentColor"/></svg>`;
+  return `<svg viewBox="-12 -12 24 24"><path d="M0 -10 A10 10 0 0 1 0 10 A5 5 0 0 1 0 0 A5 5 0 0 0 0 -10Z" fill="currentColor"/><circle r="10" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>`;}
 
 function portrait(s,p){
   if(!s)return `<svg class="pt" viewBox="0 0 240 240" role="img" aria-label="Empty slot"><circle cx="120" cy="120" r="54" fill="none" stroke="rgba(160,170,255,.3)" stroke-dasharray="4 7"/><text x="120" y="124" text-anchor="middle" font-family="Figtree,sans-serif" font-size="13" fill="rgba(169,176,220,.8)">Choose a Pokémon</text></svg>`;
@@ -708,7 +739,7 @@ let state0Ready=false;
 const cbSpecies=combo(document.getElementById('cbSpecies'),{placeholder:'Search Pokémon, forme, or type',label:()=>spOf(cur())?.n||'',items:()=>spItems,pick:v=>setSpecies(v)});
 const cbItem=combo(document.getElementById('cbItem'),{placeholder:'Search items',label:()=>cur().item,items:()=>itItems,pick:v=>{cur().item=v;commit();}});
 const moveCbs=[];const movesEl=document.getElementById('moves');
-for(let k=0;k<4;k++){const w=document.createElement('div');w.className='move';w.innerHTML=`<label class="f" for="mv${k}In">Move ${k+1}</label><div class="cb" id="mv${k}"></div><div class="mvinfo" id="mvi${k}"></div>`;movesEl.appendChild(w);
+for(let k=0;k<4;k++){const w=document.createElement('div');w.className='move';w.innerHTML=`<label class="f" for="mv${k}In">Move ${k+1}</label><div class="mvwrap"><div class="cb" id="mv${k}"></div><div class="mvcard" id="mvc${k}" aria-hidden="true"></div></div><div class="mvinfo" id="mvi${k}"></div>`;movesEl.appendChild(w);
   moveCbs.push(combo(w.querySelector('.cb'),{placeholder:'Search moves',label:()=>cur().moves[k],items:()=>moveList(),pick:v=>{cur().moves[k]=v;commit();}}));}
 let allMoves=false;document.getElementById('allMoves').addEventListener('change',e=>{allMoves=e.target.checked;});
 function moveList(){const s=spOf(cur());const base=[{v:'',k:'nomove',h:'<span class="grow"><small>No move</small></span>'}];
@@ -771,14 +802,14 @@ function renderStats(){const p=cur(),v=shown(p),st=calc(p,v),nm=natureMod(p.natu
   ['ivMax','ivTR'].forEach(x=>document.getElementById(x).hidden=ch);
   document.getElementById('evLbl').textContent=ch?'Stat points':'EVs';document.getElementById('evCap').textContent=c.total;
   const u=document.getElementById('evUsed');u.textContent=used;u.className=used>c.total?'over':'';
-  document.getElementById('lvlFixed').hidden=!ch;document.getElementById('lvlCtl').hidden=ch;
+  document.getElementById('levelRow').hidden=ch;
   lvl.value=p.level;document.getElementById('lvlOut').textContent=p.level;}
 
 let lastPortrait='';
 function renderPortrait(){const p=cur(),v=shown(p);const key=(v?v.n:'')+'|'+p.shiny+'|'+p.nick+'|'+state.active;
   if(key===lastPortrait)return;lastPortrait=key;
   document.getElementById('portrait').innerHTML=portrait(v,p);
-  document.getElementById('portraitCap').textContent=v?`The emblem animates in its ${v.t.join(' and ')} typing. Star size in the constellation tracks each base stat.`:'Choose a species to light up its constellation.';}
+}
 
 function render(){const p=cur(),s=spOf(p),v=shown(p),mi=megaIdx(p);
   fmtSel.value=state.format;
@@ -793,7 +824,18 @@ function render(){const p=cur(),s=spOf(p),v=shown(p),mi=megaIdx(p);
   const own=s?s.a:[];abSel.innerHTML=(own.length?`<optgroup label="This Pokémon">${own.map(a=>`<option>${esc(a)}</option>`).join('')}</optgroup>`:'')+`<optgroup label="All abilities">${allAbOpts}</optgroup>`;
   abSel.value=p.ability||own[0]||'';abSel.title=abDesc.get(abSel.value)||'';
   teraSel.value=p.tera;natSel.value=p.nature;document.getElementById('gender').value=p.gender;
-  for(let k=0;k<4;k++){const m=MOVES[mvById.get(id(p.moves[k]))];document.getElementById('mvi'+k).innerHTML=m?`${pill(m[1])}<span class="cat ${m[2]==='P'?'P':m[2]==='S'?'S':'St'}">${catName(m[2])}</span>${m[3]?`<span>Power ${m[3]}</span>`:''}<span>Acc ${m[4]||'—'}</span><span>PP ${m[5]}</span>`:'';}
+  const curAb=(mi>=0&&p.showMega!==false&&v)?v.a[0]:p.ability;
+  for(let k=0;k<4;k++){const m=MOVES[mvById.get(id(p.moves[k]))];const box=document.getElementById('mv'+k);const card=document.getElementById('mvc'+k);
+    const wrap=box.parentElement;
+    if(m){const conv=(m[1]==='Normal'&&m[2]!=='X'&&TYPE_ABIL[curAb])?TYPE_ABIL[curAb]:null;const mt=conv||m[1];const c=TC[mt];wrap.style.setProperty('--mc',c);wrap.classList.add('has');
+      const stab=v&&v.t.includes(mt)&&m[2]!=='X';const effp=m[3]?Math.floor(m[3]*(conv?1.2:1)*(stab?1.5:1)):0;
+      card.innerHTML=`<span class="mvbadge"><svg viewBox="-18 -18 36 36" aria-hidden="true">${glyph(mt,'#fff')}</svg></span>
+        <span class="mvtext"><span class="mvname">${esc(m[0])}</span>
+          <span class="mvstats">${m[3]?`<span><b>${m[3]}</b> pow</span>`:''}${m[4]?`<span><b>${m[4]}%</b> acc</span>`:'<span>Never misses</span>'}<span><b>${m[5]}</b> PP</span></span></span>
+        <span class="mvcat" title="${catName(m[2])}">${catIcon(m[2])}<small>${catName(m[2])}</small></span>
+        <span class="mvtags">${conv?`<span class="stab" title="${esc(curAb)} turns Normal moves ${conv}-type with 1.2× power">${esc(curAb)}</span>`:''}${stab?'<span class="stab" title="Same-type attack bonus: 1.5× power">STAB</span>':''}</span>`;
+      document.getElementById('mvi'+k).innerHTML=`${conv?`<span style="color:${c}">${esc(curAb)} makes it ${conv}-type.</span> `:''}${(stab||conv)&&m[3]?`<span class="effpow">Effective power ${effp}.</span> `:''}${esc(m[6]||'')}`;}
+    else{wrap.style.removeProperty('--mc');wrap.classList.remove('has');card.innerHTML=`<span class="mvempty">＋ Choose move ${k+1}</span>`;document.getElementById('mvi'+k).innerHTML='';}}
   renderStats();renderMatchups(currentGames());}
 
 document.getElementById('btnClear').onclick=()=>{state.team[state.active]=blank();commit();toast('Slot cleared');};
@@ -879,7 +921,9 @@ function typeProfile(s,ability){const weak=[],res=[],imm=[];for(const T of TYPES
 const andList=xs=>xs.length<=1?(xs[0]||''):xs.length===2?`${xs[0]} and ${xs[1]}`:`${xs.slice(0,-1).join(', ')}, and ${xs[xs.length-1]}`;
 const rec=(w,n)=>`${w}–${n-w}`;
 const B=s=>`<b>${esc(s)}</b>`;
-const OPP=o=>state.team.some(q=>spOf(q)&&spOf(q).n===o)?`the opposing ${B(o)}`:B(o);
+const BC=(s,c)=>`<b class="${c}">${esc(s)}</b>`;
+const OPP=(o,c)=>state.team.some(q=>spOf(q)&&spOf(q).n===o)?`the opposing ${BC(o,c)}`:BC(o,c);
+const TYPE_ABIL={Pixilate:'Fairy',Aerilate:'Flying',Refrigerate:'Ice',Galvanize:'Electric',Dragonize:'Dragon'};
 const ARCH_TYPE={Rain:'Water',Sun:'Fire',Sand:'Rock',Snow:'Ice','Psychic Terrain':'Psychic'};
 function scouting(p,idx,G,good,bad,br){const s=spOf(p),v=shown(p),nm=s.n,label=p.nick||nm;
   const ab=(megaIdx(p)>=0&&p.showMega!==false)?v.a[0]:p.ability;const tp=typeProfile(v,ab);
@@ -891,23 +935,23 @@ function scouting(p,idx,G,good,bad,br){const s=spOf(p),v=shown(p),nm=s.n,label=p
   else out.push(`${B(label)} hasn't been brought yet, so this read is based on its typing and speed.`);
   /* 2. who it beats and who beats it */
   if(good.size){const top=[...good.entries()].sort((x,y)=>y[1].n-x[1].n).slice(0,3);const moves=[...new Set(top.flatMap(([,e])=>[...e.m]))].filter(Boolean).slice(0,2);
-    out.push(`It does its best work against ${andList(top.map(([o,e])=>`${OPP(o)}${e.n>1?` (${e.n}×)`:''}`))}${moves.length?`, mostly with ${andList(moves.map(m=>B(m)))}`:''}.`);}
+    out.push(`It does its best work against ${andList(top.map(([o,e])=>`${OPP(o,'good')}${e.n>1?` (${e.n}×)`:''}`))}${moves.length?`, mostly with ${andList(moves.map(m=>B(m)))}`:''}.`);}
   if(bad.size){const top=[...bad.entries()].sort((x,y)=>y[1].n-x[1].n).slice(0,3);const moves=[...new Set(top.flatMap(([,e])=>[...e.m]))].filter(Boolean).slice(0,2);
-    out.push(`It has been taken out by ${andList(top.map(([o,e])=>`${OPP(o)}${e.n>1?` (${e.n}×)`:''}`))}${moves.length?` through ${andList(moves.map(m=>B(m)))}`:''}, so be careful bringing it into teams built around ${top.length>1?'those threats':'that threat'}.`);}
+    out.push(`It has been taken out by ${andList(top.map(([o,e])=>`${OPP(o,'bad')}${e.n>1?` (${e.n}×)`:''}`))}${moves.length?` through ${andList(moves.map(m=>B(m)))}`:''}, so be careful bringing it into teams built around ${top.length>1?'those threats':'that threat'}.`);}
   else if(br.length)out.push(`Nothing has knocked it out yet.`);
   /* 3. archetypes, from results */
   const arch=new Map();br.forEach(g=>{const k=g.arch||'Untagged';const e=arch.get(k)||{w:0,n:0};e.n++;if(g.win)e.w++;arch.set(k,e);});
   const al=[...arch.entries()].filter(([k])=>k!=='Untagged').sort((x,y)=>(y[1].w/y[1].n)-(x[1].w/x[1].n)||y[1].n-x[1].n);
-  if(al.length===1)out.push(`All of its games so far have come against ${B(al[0][0])} teams (${rec(al[0][1].w,al[0][1].n)}).`);
+  if(al.length===1)out.push(`All of its games so far have come against ${BC(al[0][0],al[0][1].w/al[0][1].n>=.5?'good':'bad')} teams (${rec(al[0][1].w,al[0][1].n)}).`);
   else if(al.length>1){const [bk,be]=al[0],[wk,we]=al[al.length-1];
-    out.push(be.w/be.n===we.w/we.n?`It has the same results across ${andList(al.map(([k])=>B(k)))} so far.`:`By archetype, it has been strongest into ${B(bk)} (${rec(be.w,be.n)}) and weakest into ${B(wk)} (${rec(we.w,we.n)}).`);}
+    out.push(be.w/be.n===we.w/we.n?`It has the same results across ${andList(al.map(([k])=>B(k)))} so far.`:`By archetype, it has been strongest into ${BC(bk,'good')} (${rec(be.w,be.n)}) and weakest into ${BC(wk,'bad')} (${rec(we.w,we.n)}).`);}
   /* 4. archetypes, on paper */
   const weakSet=new Map(tp.weak);
   const worstWeather=Object.entries(ARCH_TYPE).filter(([,T])=>weakSet.has(T)).sort((x,y)=>weakSet.get(y[1])-weakSet.get(x[1]))[0];
-  if(worstWeather)out.push(`On paper, ${B(worstWeather[0])} is the archetype to watch, since boosted ${worstWeather[1]} attacks hit ${label} ${weakSet.get(worstWeather[1])>2?'4×':'super effectively'}.`);
+  if(worstWeather)out.push(`On paper, ${BC(worstWeather[0],'bad')} is the archetype to watch, since boosted ${worstWeather[1]} attacks hit ${label} ${weakSet.get(worstWeather[1])>2?'4×':'super effectively'}.`);
   const spe=v.s[5];
-  if(spe>=95)out.push(`Its ${spe} base Speed is a big part of its value, so ${B('Trick Room')} flips that against it unless you can stall out the turns.`);
-  else if(spe<=65)out.push(`At ${spe} base Speed it welcomes ${B('Trick Room')} but has to be careful against ${B('Tailwind')}.`);
+  if(spe>=95)out.push(`Its ${spe} base Speed is a big part of its value, so ${BC('Trick Room','bad')} flips that against it unless you can stall out the turns.`);
+  else if(spe<=65)out.push(`At ${spe} base Speed it welcomes ${BC('Trick Room','good')} but has to be careful against ${BC('Tailwind','bad')}.`);
   /* 5. pairings */
   const covers=team.map(x=>{const xab=(megaIdx(x.q)>=0&&x.q.showMega!==false)?x.v.a[0]:x.q.ability;
     const c=tp.weak.map(([T])=>T).filter(T=>eff(T,x.v.t)<1||ABIL_IMMUNE[xab]===T);
@@ -917,13 +961,13 @@ function scouting(p,idx,G,good,bad,br){const s=spOf(p),v=shown(p),nm=s.n,label=p
   const defBest=covers.filter(c=>c.c.length).sort((a,b)=>b.c.length-a.c.length||(b.n?b.w/b.n:0)-(a.n?a.w/a.n:0))[0];
   const dataBest=covers.filter(c=>c.n>=2).sort((a,b)=>wilson(b.w,b.n)-wilson(a.w,a.n))[0];
   const pair=[];
-  if(dataBest&&dataBest.w/dataBest.n>=.6)pair.push(`Its most successful partner has been ${B(dataBest.name)} (${rec(dataBest.w,dataBest.n)} together)`);
-  if(defBest&&(!dataBest||defBest.name!==dataBest.name||!pair.length))pair.push(`${pair.length?'while ':''}${B(defBest.name)} ${pair.length?'covers':'is its best defensive partner, covering'} its ${andList(defBest.c)} weakness${defBest.c.length>1?'es':''}`);
+  if(dataBest&&dataBest.w/dataBest.n>=.6)pair.push(`Its most successful partner has been ${BC(dataBest.name,'good')} (${rec(dataBest.w,dataBest.n)} together)`);
+  if(defBest&&(!dataBest||defBest.name!==dataBest.name||!pair.length))pair.push(`${pair.length?'while ':''}${BC(defBest.name,'good')} ${pair.length?'covers':'is its best defensive partner, covering'} its ${andList(defBest.c)} weakness${defBest.c.length>1?'es':''}`);
   else if(defBest&&dataBest&&defBest.name===dataBest.name)pair.push(`and that pairing also covers its ${andList(defBest.c)} weakness${defBest.c.length>1?'es':''}`);
   if(pair.length)out.push(pair.join(pair[0].startsWith('Its most')&&pair.length>1?(pair[1].startsWith('and')?' ':', '):' ')+'.');
   else if(!tp.weak.length)out.push(`It has no weaknesses to cover, which makes it a flexible partner for anyone.`);
   const sharer=covers.filter(c=>c.shared.length).sort((a,b)=>b.shared.length-a.shared.length)[0];
-  if(sharer)out.push(`Be careful bringing it with ${B(sharer.name)} against ${andList(sharer.shared)} attackers, since both are weak to ${andList(sharer.shared)}.`);
+  if(sharer)out.push(`Be careful bringing it with ${BC(sharer.name,'bad')} against ${andList(sharer.shared)} attackers, since both are weak to ${andList(sharer.shared)}.`);
   return `<p class="scout">${out.join(' ')}</p>`;}
 
 function renderMatchups(G){const tk=teamKeys();
