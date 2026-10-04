@@ -405,6 +405,38 @@ h1::after{content:"";display:block;height:2px;margin-top:10px;width:100%;backgro
 @keyframes rgrow{from{transform:scale(0);opacity:.2}to{transform:scale(1);opacity:1}}
 .decode{color:var(--cyan)!important}
 @media (prefers-reduced-motion:reduce){.scanline,.scanstat,.scanprog{display:none!important}}
+
+/* ===== charts ===== */
+.chart svg{width:100%;height:auto;display:block}
+.chnote{font-size:11.5px;color:var(--ink-faint);margin:6px 0 0}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:11.5px;color:var(--ink-dim);margin-top:8px}
+.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.ubs{display:flex;flex-direction:column;gap:9px}
+.ub{display:grid;grid-template-columns:110px minmax(0,1fr);gap:10px;align-items:center}
+.ub-n{font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ub-bars{display:flex;flex-direction:column;gap:3px}
+.ub-row{display:grid;grid-template-columns:52px minmax(0,1fr) 42px;gap:8px;align-items:center;font-size:11px;color:var(--ink-faint)}
+.ub-t{position:relative;height:8px;border-radius:5px;background:rgba(255,255,255,.07)}
+.ub-t i{display:block;height:100%;border-radius:5px}
+.ub-t em{position:absolute;top:-3px;width:2px;height:14px;background:#ffe6a3;border-radius:1px;transform:translateX(-1px)}
+.ub-t em.tm{background:#fff;opacity:.8}
+.ub-v{text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
+.kos{display:flex;flex-direction:column;gap:6px}
+.kr{display:grid;grid-template-columns:minmax(0,1fr) 112px minmax(0,1fr);gap:8px;align-items:center;font-size:12px}
+.kt,.kk{display:flex;align-items:center;gap:6px;height:16px}
+.kt{justify-content:flex-end}
+.kt i{display:block;height:12px;border-radius:6px 2px 2px 6px;background:#ff94c8;min-width:2px}
+.kk i{display:block;height:12px;border-radius:2px 6px 6px 2px;min-width:2px}
+.kt b,.kk b{font-variant-numeric:tabular-nums;min-width:14px;text-align:center}
+.kn{text-align:center;font-weight:700;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.thr{display:flex;flex-direction:column;gap:8px}
+.tr{display:grid;grid-template-columns:130px minmax(120px,1fr) minmax(0,2fr);gap:12px;align-items:center;font-size:12.5px}
+.tn{font-weight:700}
+.tb{display:flex;align-items:center;gap:8px}
+.tb i{display:block;height:12px;border-radius:6px;min-width:4px}
+.tb b{white-space:nowrap;font-size:12px}
+.td{color:var(--ink-dim);font-size:12px}.td em{color:var(--ink-faint);font-style:normal}
+@media (max-width:700px){.tr{grid-template-columns:110px 1fr}.td{grid-column:1/-1}.ub{grid-template-columns:1fr}}
 .mustack{flex:1;display:flex;flex-direction:column;gap:12px;min-height:0}
 .mustack .mu{aspect-ratio:auto;flex:1 1 0;min-height:0}
 @media (max-width:1180px){.grid{grid-template-columns:1fr 1fr!important}.center{grid-column:1/-1;order:-1}.mucol{contain:none}.mustack .mu{flex:none}}
@@ -1077,10 +1109,11 @@ function renderReplay(txt,g){const log=replayLog(txt).replace(/\\\//g,'/');const
 
 
 let backfilling=false;
-async function backfillKOs(){if(backfilling)return;const need=matches.games.filter(g=>g.file&&!Array.isArray(g.kos));if(!need.length)return;backfilling=true;let n=0;
+async function backfillKOs(){if(backfilling)return;const need=matches.games.filter(g=>g.file&&(!Array.isArray(g.kos)||g.archV!==2));if(!need.length)return;backfilling=true;let n=0;
   for(const g of need){try{const r=await fetch('/_blob/'+g.file);if(!r.ok)continue;const txt=await r.text();const log=replayLog(txt);if(!log)continue;
     const players={};log.split('\n').forEach(ln=>{const f=ln.split('|');if(f[1]==='player'&&f[3])players[f[2]]=f[3];});const me=players.p2===g.player?'p2':'p1';
-    g.kos=parseKOs(log).map(k=>({a:k.a,t:k.t,m:k.m,mine:k.as===me}));n++;}catch(e){}}
+    g.kos=parseKOs(log).map(k=>({a:k.a,t:k.t,m:k.m,mine:k.as===me}));
+    const c=classifyGame(log,me==='p1'?'p2':'p1');if(g.archAuto!==false)g.arch=c.arch;g.archWhy=c.why;g.archV=2;n++;}catch(e){}}
   backfilling=false;if(n){saveM();renderInsights();}}
 
 
@@ -1205,6 +1238,47 @@ function parseKOs(log){log=log.replace(/\\\//g,'/');const names={};let last=null
 function guessArch(mons){const abil=new Set(),moves=new Set();mons.forEach(x=>{abil.add(id(x.ability));x.moves.forEach(mv=>moves.add(id(mv)));});
   if(abil.has('drizzle'))return 'Rain';if(abil.has('drought')||abil.has('orichalcumpulse'))return 'Sun';if(abil.has('sandstream'))return 'Sand';if(abil.has('snowwarning'))return 'Snow';
   if(moves.has('trickroom'))return 'Trick Room';if(abil.has('psychicsurge'))return 'Psychic Terrain';if(moves.has('tailwind'))return 'Tailwind';return 'Other';}
+/* archetype from what the opponent actually brought and did in this game, not their full six */
+const TRAPPERS=new Set(['shadowtag','arenatrap','magnetpull']),TRAPMOVES=new Set(['meanlook','block','spiritshackle','anchorshot','jawlock','spiderweb','fairylock','thousandwaves','octolock']);
+const WEATHER={raindance:'Rain',sunnyday:'Sun',sandstorm:'Sand',snowscape:'Snow',snow:'Snow',hail:'Snow',desolateland:'Sun',primordialsea:'Rain'};
+const WABIL={drizzle:'Rain',drought:'Sun',orichalcumpulse:'Sun',sandstream:'Sand',sandspit:'Sand',snowwarning:'Snow',desolateland:'Sun',primordialsea:'Rain'};
+const TERR={psychicterrain:'Psychic Terrain',psychicsurge:'Psychic Terrain',electricterrain:'Electric Terrain',electricsurge:'Electric Terrain',hadronengine:'Electric Terrain',mistyterrain:'Misty Terrain',mistysurge:'Misty Terrain'};
+function classifyGame(log,opp){log=log.replace(/\\\//g,'/');const L=log.split('\n');const base=s=>s.replace(/-Mega(-[XYZ])?$/,'');
+  const brought=[],used=new Map(),setUp=[],nick=new Map();let sets=[];
+  const mark=(k,why)=>{if(!setUp.some(x=>x.k===k))setUp.push({k,why});};
+  for(const ln of L){const f=ln.split('|');const t=f[1];
+    if(t==='showteam'&&f[2]===opp)sets=ln.split('|').slice(3).join('|').split(']').map(s=>{const p=s.split('|');const sp=base(p[0]);
+        /* a Mega Stone can change the ability (Gengarite gives Shadow Tag) */
+        const mi=megaByStone.get(id(sp)+'|'+id(p[2]||''));const megaAb=mi!==undefined?id(SPECIES[mi].a[0]):'';
+        return {sp,ability:id(p[3]||''),megaAb,moves:(p[4]||'').split(',').map(id).filter(Boolean)};});
+    else if((t==='switch'||t==='drag'||t==='replace')&&f[2].startsWith(opp)){const sp=base(f[3].split(',')[0].trim());nick.set(f[2].replace(/^p\d[a-d]?:\s*/,''),sp);if(!brought.includes(sp))brought.push(sp);}
+    else if(t==='move'&&f[2].startsWith(opp)){const nn=f[2].replace(/^p\d[a-d]?:\s*/,'');const who=nick.get(nn)||base(nn);const mv=id(f[3]);
+      if(!used.has(who))used.set(who,new Set());used.get(who).add(mv);
+      if(mv==='perishsong')mark('Perish Trap',`${who} used Perish Song`);
+      if(mv==='trickroom')mark('Trick Room',`${who} set Trick Room`);
+      if(mv==='tailwind')mark('Tailwind',`${who} set Tailwind`);
+      if(WEATHER[mv])mark(WEATHER[mv],`${who} set ${f[3]}`);
+      if(TERR[mv])mark(TERR[mv],`${who} set ${f[3]}`);}
+    else if(t==='-weather'&&f[2]!=='none'&&/\[from\] ability:/.test(ln)&&new RegExp('\\[of\\] '+opp).test(ln)){const ab=id((ln.match(/ability: ([^|]+)/)||[])[1]||'');const wn=((ln.match(/\[of\] p\d[a-d]?: ([^|]+)/)||[])[1]||'').trim();const who=nick.get(wn)||base(wn);if(WABIL[ab])mark(WABIL[ab],`${who} set ${WABIL[ab].toLowerCase()} with its ability`);}
+    else if(t==='-fieldstart'&&/ability:/.test(ln)&&new RegExp('\\[of\\] '+opp).test(ln)){const ab=id((ln.match(/ability: ([^|]+)/)||[])[1]||'');if(TERR[ab])mark(TERR[ab],`${TERR[ab]} from an ability`);}}
+  const bset=sets.filter(s=>brought.includes(s.sp));
+  /* trap partner alongside Perish Song */
+  const trap=bset.some(s=>TRAPPERS.has(s.ability)||TRAPPERS.has(s.megaAb)||s.moves.some(m=>TRAPMOVES.has(m)))||[...used.values()].some(v=>[...v].some(m=>TRAPMOVES.has(m)));
+  const perishOnSet=bset.find(s=>s.moves.includes('perishsong'));
+  const trapper=bset.find(s=>TRAPPERS.has(s.ability)||TRAPPERS.has(s.megaAb)||s.moves.some(m=>TRAPMOVES.has(m)));
+  if(perishOnSet&&trap)mark('Perish Trap',`${perishOnSet.sp} brought Perish Song with ${trapper&&trapper.megaAb&&TRAPPERS.has(trapper.megaAb)?'Mega '+trapper.sp+'’s Shadow Tag':trapper?trapper.sp+' trapping':'a trapper'}`);
+  if(setUp.length){const order=['Perish Trap','Rain','Sun','Sand','Snow','Trick Room','Tailwind','Psychic Terrain','Electric Terrain','Misty Terrain'];
+    const pick=setUp.slice().sort((a,b)=>order.indexOf(a.k)-order.indexOf(b.k))[0];
+    const also=setUp.filter(x=>x.k!==pick.k).map(x=>x.k);return {arch:pick.k,why:pick.why+(also.length?` (also ${also.join(', ')})`:''),brought};}
+  /* nothing set during the game: fall back to what the brought Pokémon carried */
+  const has=pred=>bset.find(pred);let m;
+  if(m=has(s=>WABIL[s.ability]))return {arch:WABIL[m.ability],why:`${m.sp} was brought but its weather never started`,brought};
+  if(m=has(s=>s.moves.includes('trickroom')))return {arch:'Trick Room',why:`${m.sp} was brought with Trick Room but never set it`,brought};
+  if(m=has(s=>s.moves.includes('tailwind')))return {arch:'Tailwind',why:`${m.sp} was brought with Tailwind but never set it`,brought};
+  if(m=has(s=>TERR[s.ability]))return {arch:TERR[m.ability],why:`${m.sp} was brought`,brought};
+  const support=bset.filter(s=>['intimidate'].includes(s.ability)||s.moves.some(x=>['fakeout','partingshot','followme','ragepowder','spore','willowisp','helpinghand'].includes(x)));
+  if(support.length)return {arch:'Balance',why:`no weather, room or Tailwind brought; support from ${support.map(s=>s.sp).join(', ')}`,brought};
+  return {arch:'Offense',why:'no speed control or field effect brought',brought};}
 function parseReplay(text,fileName){const log=replayLog(text);if(!log)return null;const L=log.split('\n');
   const players={},pokes={p1:[],p2:[],p3:[],p4:[]},sets={p1:[],p2:[]},seen={p1:[],p2:[]},leads={p1:[],p2:[]};let winner='',turn=0,gameNo=0,setId='';
   for(const ln of L){const f=ln.split('|');const tag=f[1];
@@ -1222,7 +1296,7 @@ function parseReplay(text,fileName){const log=replayLog(text);if(!log)return nul
   const opp=me==='p1'?'p2':'p1';
   const rid=(text.match(/name="replayid" value="([^"]+)"/)||[])[1]||fileName||'';
   return {win:winner===players[me],leads:leads[me],back:seen[me].filter(n=>!leads[me].includes(n)).slice(0,2),oppLeads:leads[opp],oppBack:seen[opp].filter(n=>!leads[opp].includes(n)).slice(0,2),
-    oppTeam:pokes[opp],kos:kos.map(k=>({a:k.a,t:k.t,m:k.m,mine:k.as===me})),arch:guessArch(sets[opp]||[]),archAuto:true,match:setId||rid,game:gameNo||1,opp:players[opp],player:players[me],replay:rid};}
+    oppTeam:pokes[opp],kos:kos.map(k=>({a:k.a,t:k.t,m:k.m,mine:k.as===me})),...(c=>({arch:c.arch,archWhy:c.why,archV:2}))(classifyGame(log,opp)),archAuto:true,match:setId||rid,game:gameNo||1,opp:players[opp],player:players[me],replay:rid};}
 
 /* map names in the log onto team members (Mega and base names count as the same Pokémon) */
 function teamKeys(){const m=new Map();state.team.forEach(p=>{const s=spOf(p);if(!s)return;const label=s.n;const keys=[id(s.n),id(s.b),id(p.nick)];
@@ -1241,7 +1315,64 @@ function typeOfName(n){const i=spById.get(id(n));if(i!==undefined)return SPECIES
 const PN=n=>{const t=typeOfName(n);return t?`<span class="pn" style="color:${TC[t]}">${esc(n)}</span>`:esc(n);};
 const PNS=s=>String(s??'').split(/(\s\+\s|\s·\s|,\s)/).map(x=>/^(\s\+\s|\s·\s|,\s)$/.test(x)?esc(x):PN(x)).join('');
 
+/* ================= CHARTS ================= */
+const CHART_MIN=10;
+const chartNote=(n,what)=>n<CHART_MIN?`<p class="chnote">Based on ${n} game${n===1?'':'s'}. ${what} becomes more reliable after ${CHART_MIN}+ games.</p>`:`<p class="chnote">Based on ${n} games.</p>`;
+const gameOrder=g=>{const m=String(g.replay||'').match(/-(\d{6,})-/);return m?+m[1]:1e12+(g._i||0);};
+const monColor=n=>{const t=typeOfName(n);return t?TC[t]:'#a9b0dc';};
+function chartTrend(G){const gs=G.slice().sort((a,b)=>gameOrder(a)-gameOrder(b)||(a.game||0)-(b.game||0));const n=gs.length;if(n<2)return '<p class="lede">Log at least two games to see a trend.</p>';
+  const W=760,H=230,L=40,R=14,T=16,B=34,iw=W-L-R,ih=H-T-B;const X=i=>L+(n===1?iw/2:i*iw/(n-1)),Y=v=>T+ih*(1-v);
+  const win=5;const roll=gs.map((g,i)=>{const s=gs.slice(Math.max(0,i-win+1),i+1);return s.filter(x=>x.win).length/s.length;});
+  let cw=0;const cum=gs.map((g,i)=>{if(g.win)cw++;return cw/(i+1);});
+  const path=arr=>arr.map((v,i)=>`${i?'L':'M'}${X(i).toFixed(1)} ${Y(v).toFixed(1)}`).join(' ');
+  let grid='';[0,.25,.5,.75,1].forEach(v=>{grid+=`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="rgba(160,170,255,${v===.5?.3:.1})" ${v===.5?'stroke-dasharray="4 4"':''}/><text x="${L-6}" y="${Y(v)+3.5}" text-anchor="end" font-size="10" fill="#6f78ad">${v*100}%</text>`;});
+  /* set boundaries */
+  let sets='';gs.forEach((g,i)=>{if(i&&g.match!==gs[i-1].match)sets+=`<line x1="${((X(i)+X(i-1))/2).toFixed(1)}" x2="${((X(i)+X(i-1))/2).toFixed(1)}" y1="${T}" y2="${T+ih}" stroke="rgba(160,170,255,.12)"/>`;});
+  const area=`${path(roll)} L${X(n-1)} ${Y(0)} L${X(0)} ${Y(0)}Z`;
+  const dots=gs.map((g,i)=>`<circle cx="${X(i).toFixed(1)}" cy="${(g.win?T+ih+12:T+ih+22).toFixed(1)}" r="4" fill="${g.win?'#8ff0c0':'#ff94c8'}"><title>Game ${i+1}: ${g.win?'Win':'Loss'} vs ${esc(g.opp||'opponent')} (${esc(g.arch||'')})</title></circle>`).join('');
+  const last=roll[n-1],first=roll[Math.min(n-1,win-1)];
+  const trendTxt=n>=win+2?(last>first+.1?'trending up':last<first-.1?'trending down':'holding steady'):'too early to call a trend';
+  return `<p class="lede">Your last ${Math.min(win,n)} games are at <b style="color:var(--cyan)">${pct(last)}</b>, overall <b style="color:var(--moon)">${pct(cum[n-1])}</b>, ${trendTxt}. Green dots are wins, pink are losses, and faint lines separate sets.</p>
+  <div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Win rate over time">
+   <defs><linearGradient id="trg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7fdcff" stop-opacity=".35"/><stop offset="1" stop-color="#7fdcff" stop-opacity="0"/></linearGradient></defs>
+   ${grid}${sets}<path d="${area}" fill="url(#trg)"/>
+   <path d="${path(cum)}" fill="none" stroke="#ffe6a3" stroke-width="1.6" stroke-dasharray="5 4"/>
+   <path d="${path(roll)}" fill="none" stroke="#7fdcff" stroke-width="2.4" stroke-linejoin="round"/>
+   ${roll.map((v,i)=>`<circle cx="${X(i).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="2.4" fill="#7fdcff"/>`).join('')}
+   ${dots}</svg></div>
+  <div class="legend"><span><i style="background:#7fdcff"></i>Last ${win} games</span><span><i style="background:#ffe6a3"></i>Overall to date</span></div>${chartNote(n,'The trend')}`;}
+function chartUsage(G){const mons=state.team.map(p=>spOf(p)?.n).filter(Boolean);const n=G.length;if(!n)return '';
+  const rows=mons.map(m=>{const br=G.filter(g=>[...g.leads,...g.back].includes(m));const w=br.filter(g=>g.win).length;const led=G.filter(g=>g.leads.includes(m)).length;return {m,b:br.length,w,led,rate:br.length?w/br.length:0};}).sort((a,b)=>b.b-a.b);
+  const team=G.filter(g=>g.win).length/n;
+  const bars=rows.map(r=>`<div class="ub"><div class="ub-n">${PN(r.m)}</div>
+    <div class="ub-bars"><div class="ub-row"><span class="ub-l">Brought</span><span class="ub-t"><i style="width:${r.b/n*100}%;background:${monColor(r.m)}"></i><em style="left:${r.led/n*100}%" title="Led ${r.led} times"></em></span><span class="ub-v">${r.b}/${n}</span></div>
+    <div class="ub-row"><span class="ub-l">Wins</span><span class="ub-t"><i style="width:${r.rate*100}%;background:${r.rate>=team?'#8ff0c0':'#ff94c8'}"></i><em class="tm" style="left:${team*100}%"></em></span><span class="ub-v">${r.b?pct(r.rate):'–'}</span></div></div></div>`).join('');
+  const best=rows.filter(r=>r.b>=4).sort((a,b)=>b.rate-a.rate)[0],worst=rows.filter(r=>r.b>=4).sort((a,b)=>a.rate-b.rate)[0];const bench=rows.filter(r=>r.b/n<.4);
+  return `<p class="lede">${best?`${PN(best.m)} wins most when brought (${best.w}–${best.b-best.w}).`:''}${worst&&best&&worst.m!==best.m&&worst.rate<team?` ${PN(worst.m)} is below the team's ${pct(team)} (${worst.w}–${worst.b-worst.w}).`:''}${bench.length?` Brought least: ${bench.map(r=>PN(r.m)).join(', ')}.`:''}</p>
+   <div class="ubs">${bars}</div><div class="legend"><span><i style="background:#ffe6a3;width:2px;height:10px"></i>Tick on "Brought" marks how often it led</span><span><i style="background:#fff;width:2px;height:10px"></i>Tick on "Wins" is the team's overall rate</span></div>${chartNote(n,'Win rate when brought')}`;}
+function chartKOs(G){const tk=teamKeys();const mons=state.team.map(p=>spOf(p)?.n).filter(Boolean);const withK=G.filter(g=>Array.isArray(g.kos));if(!withK.length)return '<p class="lede">No knockout data yet. It comes from uploaded replays.</p>';
+  const d=Object.fromEntries(mons.map(m=>[m,{k:0,t:0}]));withK.forEach(g=>g.kos.forEach(k=>{if(k.mine){const a=canon(k.a,tk);if(d[a])d[a].k++;}else{const t=canon(k.t,tk);if(d[t])d[t].t++;}}));
+  const rows=mons.map(m=>({m,...d[m]})).sort((a,b)=>(b.k-b.t)-(a.k-a.t));const mx=Math.max(1,...rows.map(r=>Math.max(r.k,r.t)));
+  const tot=rows.reduce((s,r)=>s+r.k,0),totT=rows.reduce((s,r)=>s+r.t,0);const top=rows[0],bot=rows[rows.length-1];
+  return `<p class="lede">${tot} knockouts dealt, ${totT} taken across ${withK.length} games. ${PN(top.m)} trades best (${top.k} for ${top.t})${bot.m!==top.m?`; ${PN(bot.m)} trades worst (${bot.k} for ${bot.t})`:''}.</p>
+   <div class="kos">${rows.map(r=>`<div class="kr"><span class="kt"><b>${r.t}</b><i style="width:${r.t/mx*100}%"></i></span><span class="kn">${PN(r.m)}</span><span class="kk"><i style="width:${r.k/mx*100}%;background:${monColor(r.m)}"></i><b>${r.k}</b></span></div>`).join('')}</div>
+   <div class="legend"><span><i style="background:#ff94c8"></i>Times knocked out</span><span><i style="background:#8ff0c0"></i>Knockouts dealt</span></div>${chartNote(withK.length,'Trade ratio')}`;}
+function chartThreats(G){const tk=teamKeys();const withK=G.filter(g=>Array.isArray(g.kos));if(!withK.length)return '<p class="lede">No knockout data yet.</p>';
+  const m=new Map();const faced=new Map();
+  G.forEach(g=>new Set([...(g.oppLeads||[]),...(g.oppBack||[])]).forEach(o=>faced.set(o,(faced.get(o)||0)+1)));
+  withK.forEach(g=>g.kos.forEach(k=>{if(k.mine)return;const e=m.get(k.a)||{n:0,v:new Map(),mv:new Map()};e.n++;const t=canon(k.t,tk);e.v.set(t,(e.v.get(t)||0)+1);e.mv.set(k.m,(e.mv.get(k.m)||0)+1);m.set(k.a,e);}));
+  const rows=[...m.entries()].map(([o,e])=>({o,...e,f:faced.get(o)||0})).sort((a,b)=>b.n-a.n||b.n/(b.f||1)-a.n/(a.f||1)).slice(0,8);if(!rows.length)return '<p class="lede">Nothing has knocked out your Pokémon yet.</p>';
+  const mx=rows[0].n;
+  return `<p class="lede">The opposing Pokémon that have knocked out your team most often, with the move they used most and who they took out.</p>
+   <div class="thr">${rows.map(r=>{const mv=[...r.mv.entries()].sort((a,b)=>b[1]-a[1])[0][0];const vic=[...r.v.entries()].sort((a,b)=>b[1]-a[1]);
+     return `<div class="tr"><span class="tn">${PN(r.o)}</span><span class="tb"><i style="width:${r.n/mx*100}%;background:${monColor(r.o)}"></i><b>${r.n} KO${r.n>1?'s':''}</b></span>
+     <span class="td">${esc(mv)} · took out ${vic.map(([v,c])=>`${PN(v)}${c>1?` ×${c}`:''}`).join(', ')} <em>· faced in ${r.f} game${r.f===1?'':'s'}</em></span></div>`;}).join('')}</div>${chartNote(withK.length,'This list')}`;}
+
 const INSIGHTS=[
+ {id:'trend',title:'Win rate over time',color:'var(--cyan)',wide:true,render:G=>chartTrend(G)},
+ {id:'usage',title:'Usage and win rate by Pokémon',color:'var(--moon)',render:G=>chartUsage(G)},
+ {id:'kotrade',title:'Knockouts dealt vs. taken',color:'var(--mint)',render:G=>chartKOs(G)},
+ {id:'threats',title:'Biggest threats to your team',color:'var(--rose)',wide:true,render:G=>chartThreats(G)},
  {id:'leads',title:'Leads that win most',color:'var(--cyan)',render(G,ctx){
    const rows=aggregate(g=>g.leads.length===2?g.leads.slice().sort().join(' + '):null,G).sort((a,b)=>b.lb-a.lb||b.n-a.n);
    const ok=rows.filter(r=>r.n>=minGames);if(!rows.length)return '<p class="lede">No lead data yet.</p>';
@@ -1286,14 +1417,14 @@ const INSIGHTS=[
    groups.reverse();
    const row=g=>`<tr><td>${g.game?'G'+g.game:''}</td><td style="color:${g.win?'var(--mint)':'var(--rose)'};font-weight:700">${g.win?'Win':'Loss'}</td>
      <td>${PNS(g.leads.join(' + '))}</td><td>${PNS(g.back.join(' + '))}</td><td>${PNS((g.oppLeads||[]).join(' + '))}</td>
-     <td><input type="text" class="archin" data-i="${g._i}" value="${esc(g.arch||'')}" aria-label="Archetype for game" list="archList" style="padding:4px 8px;font-size:13px;width:116px">${g.archAuto?' <small style="color:var(--ink-faint)">auto</small>':''}</td>
+     <td><input type="text" class="archin" data-i="${g._i}" value="${esc(g.arch||'')}" aria-label="Archetype for game" list="archList" style="padding:4px 8px;font-size:13px;width:116px" title="${esc(g.archWhy||'')}">${g.archAuto!==false&&g.archWhy?`<small style="display:block;color:var(--ink-faint);max-width:200px;margin-top:3px;line-height:1.3">${esc(g.archWhy)}</small>`:g.archAuto===false?'<small style="display:block;color:var(--ink-faint);margin-top:3px">set by you</small>':''}</td>
      <td><select class="mvf" data-i="${g._i}" aria-label="Folder for game" style="padding:4px 26px 4px 8px;font-size:13px;width:132px">${fopts(g.folder||'')}</select></td>
      <td style="white-space:nowrap">${g.file?`<button type="button" class="viewg" data-i="${g._i}" style="padding:4px 10px;font-size:12px">View replay</button> `:''}<button type="button" class="ghost delg" data-i="${g._i}" style="padding:4px 10px;font-size:12px" aria-label="Remove this game">Remove</button></td></tr>`;
    return `<p class="lede">Games are grouped by best-of-three set. Open a set to see its games, view replays, or move them to another folder.</p>${groups.map(gr=>{const gs=gr.games.slice().sort((x,y)=>(x.game||0)-(y.game||0));const w=gs.filter(g=>g.win).length,l=gs.length-w;
      const res=w>l?'Won':w<l?'Lost':'Tied';const opp=gs[0].opp||'Opponent';const arch=[...new Set(gs.map(g=>g.arch).filter(Boolean))].join(', ');
      return `<details class="set" data-k="${esc(gr.k)}"${openSets.has(gr.k)?' open':''}><summary><b>vs ${esc(opp)}</b><span class="res" style="color:${w>l?'var(--mint)':w<l?'var(--rose)':'var(--ink-dim)'}">${res} ${w}–${l}</span><span class="sub2">${gs.length} game${gs.length>1?'s':''}${arch?' · '+esc(arch):''}</span></summary>
        <div class="cov"><table class="rk" style="min-width:860px"><thead><tr><th>Game</th><th>Result</th><th>Your leads</th><th>Your back</th><th>Their leads</th><th>Archetype</th><th>Folder</th><th></th></tr></thead><tbody>${gs.map(row).join('')}</tbody></table></div></details>`;}).join('')}
-     <datalist id="archList">${['Rain','Sun','Sand','Snow','Trick Room','Tailwind','Psychic Terrain','Balance','Mirror','Hyper offense','Other'].map(x=>`<option value="${x}">`).join('')}</datalist>`;}},
+     <datalist id="archList">${['Rain','Sun','Sand','Snow','Trick Room','Tailwind','Perish Trap','Psychic Terrain','Electric Terrain','Misty Terrain','Balance','Offense','Mirror','Other'].map(x=>`<option value="${x}">`).join('')}</datalist>`;}},
 ];
 
 
@@ -1336,7 +1467,7 @@ function renderInsights(){const el=document.getElementById('insights');document.
 const gdlg=document.getElementById('gdlg'),gtext=document.getElementById('gtext');
 document.getElementById('gClose').onclick=()=>gdlg.close();
 function addGames(g,folder){if(matches.example)matches={games:[],example:false,folders:matches.folders||[]};const have=new Set(matches.games.map(x=>x.replay).filter(Boolean));
-  const fresh=g.filter(x=>!x.replay||!have.has(x.replay));const dup=g.length-fresh.length;
+  const fresh=g.filter(x=>{if(!x.replay)return true;if(have.has(x.replay))return false;have.add(x.replay);return true;});const dup=g.length-fresh.length;
   fresh.forEach(x=>{if(folder)x.folder=folder;});
   const pl=fresh.find(x=>x.player);if(pl&&!matches.player)matches.player=pl.player;
   matches.games=matches.games.concat(fresh);saveM();renderInsights();
@@ -1352,10 +1483,13 @@ document.getElementById('btnAddGames').onclick=()=>{gtext.value='';document.getE
 async function storeReplay(txt){if(!ASSETS)return '';try{const r=await ASSETS.upload(new Blob([txt],{type:'text/plain'}),{type:'text/plain'});return r.id;}catch(e){return '';}}
 document.getElementById('gfile').onchange=async e=>{const files=[...e.target.files];e.target.value='';if(!files.length)return;
   if(document.getElementById('gFolder').value==='__new'&&!document.getElementById('gNewFolder').value.trim()){toast('Name the new folder first');return;}
-  const folder=chosenFolder();const have=new Set(matches.games.map(x=>x.replay).filter(Boolean));const reps=[],other=[];let stored=0;
+  const folder=chosenFolder();const have=new Set(matches.games.map(x=>x.replay).filter(Boolean));const reps=[],other=[];let stored=0,attached=0;
   toast(`Reading ${files.length} file${files.length>1?'s':''}…`);
   for(const f of files){const txt=await f.text();const r=parseReplay(txt,f.name);if(!r){other.push(txt);continue;}
+    const prev=matches.games.find(x=>x.replay&&x.replay===r.replay);
+    if(prev){if(!prev.file){const idv=await storeReplay(txt);if(idv){prev.file=idv;attached++;}}continue;}
     if(!have.has(r.replay)){const idv=await storeReplay(txt);if(idv){r.file=idv;stored++;}have.add(r.replay);}reps.push(r);}
+  if(attached){saveM();renderInsights();toast(`Attached ${attached} replay file${attached>1?'s':''} to games already logged`);}
   if(reps.length){addGames(reps,folder);if(folder)folderView=folder;renderInsights();}
   if(!other.length){gdlg.close();}else{gtext.value=other.join('\n');toast('Some files were not replays. Check the text box.');}};
 document.getElementById('gAdd').onclick=()=>{const txt=gtext.value;const r=parseReplay(txt,'');const g=r?[r]:parseGames(txt);
