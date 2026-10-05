@@ -528,8 +528,8 @@ details.mxd>summary{cursor:pointer;color:var(--cyan);font-size:13px;margin:4px 0
 .hb-dex{font:700 13px var(--body);letter-spacing:.12em;color:var(--ink-dim)}
 .hb-mega{color:#10122a;background:linear-gradient(90deg,var(--h1),var(--h2));padding:2px 9px;border-radius:999px;letter-spacing:.08em}
 .hb-name{font:800 clamp(38px,6vw,76px)/1 var(--display);margin:6px 0 10px;letter-spacing:-.02em;color:#fff;
-  background:linear-gradient(95deg,#fff 0%,var(--h1) 45%,var(--h2) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 18px rgba(0,0,0,.5))}
-.hb-ja{font:700 clamp(18px,2.4vw,30px)/1 "Hiragino Sans","Yu Gothic","Noto Sans JP","Meiryo",var(--body);margin-left:.4em;vertical-align:middle;-webkit-text-fill-color:rgba(233,236,255,.82);color:rgba(233,236,255,.82);letter-spacing:.02em;white-space:nowrap}
+  background:linear-gradient(95deg,#d4ecff 0%,var(--h1) 45%,var(--h2) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 18px rgba(0,0,0,.5))}
+.hb-ja{font:700 clamp(18px,2.4vw,30px)/1 "Hiragino Sans","Yu Gothic","Noto Sans JP","Meiryo",var(--body);margin-left:.4em;vertical-align:middle;-webkit-text-fill-color:rgba(207,232,255,.85);color:rgba(207,232,255,.85);letter-spacing:.02em;white-space:nowrap}
 .hb-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 .hb-chips span{font-size:13px;color:var(--ink-dim);background:rgba(6,10,34,.6);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:5px 11px;backdrop-filter:blur(4px)}
 .hb-chips b{color:var(--ink)}
@@ -541,6 +541,7 @@ details.mxd>summary{cursor:pointer;color:var(--cyan);font-size:13px;margin:4px 0
 @keyframes hflash{0%{opacity:.95;transform:scale(.3)}100%{opacity:0;transform:scale(1.6)}}
 @media (max-width:760px){.herob{grid-template-columns:1fr;justify-items:center;text-align:center;padding:16px}.hb-emb{width:240px;height:240px}.hb-chips{justify-content:center}.hb-burst{left:50%;top:140px}}
 @media (prefers-reduced-motion:reduce){.hstreak,.hspark,.hrays,.hb-burst{animation:none!important}.hb-burst{display:none}}
+
 .mustack{flex:1;display:flex;flex-direction:column;gap:12px;min-height:0}
 .mustack .mu{aspect-ratio:auto;flex:1 1 0;min-height:0}
 @media (max-width:1180px){.grid{grid-template-columns:1fr 1fr!important}.center{grid-column:1/-1;order:-1}.mucol{contain:none}.mustack .mu{flex:none}}
@@ -548,6 +549,18 @@ details.mxd>summary{cursor:pointer;color:var(--cyan);font-size:13px;margin:4px 0
 @media (max-width:960px){.grid{grid-template-columns:1fr}.team{grid-template-columns:repeat(3,minmax(0,1fr))}.moon{width:60px;height:60px}}
 @media (max-width:520px){.cap{max-width:none}.r3{grid-template-columns:1fr 1fr}.team{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (prefers-reduced-motion:reduce){.toast{transition:none}}
+/* ===== light blue text + light blue box borders ===== */
+:root{--ink:#b8e0ff;--panel-edge:rgba(140,205,255,.45);--lb:#8fd0ff}
+body{color:var(--ink)}
+.panel,.box,.acard,.kpi:not(.minr),.slot,.viab,.mu,details.set,.spd div,.ovc,.hchip,.af,.empty-ins,.callout,.mvtip,dialog{border:1px solid rgba(140,205,255,.55)!important;box-shadow:0 0 0 1px rgba(143,208,255,.08),0 0 18px -8px rgba(143,208,255,.55)}
+.panel{box-shadow:0 0 0 1px rgba(143,208,255,.12),0 0 28px -10px rgba(143,208,255,.6),0 20px 50px -30px rgba(0,0,0,.8)!important}
+.slot[aria-current="true"]{border-color:var(--moon)!important}
+.callout{border-left-width:3px!important}
+.callout.good{border-left-color:var(--mint)!important}.callout.bad{border-left-color:var(--rose)!important}.callout:not(.good):not(.bad){border-left-color:var(--cyan)!important}
+.herob{border-color:rgba(140,205,255,.6)!important}
+.ov-p,.mt-d,.viab p,.scout b,.pf-k b,.hb-chips b,.ub-v,.ldb b,.kpi b,.stat .final,.evsum,.rk td,.rk th{color:inherit}
+.rk td,.mx td,.glog td,.ov-p,.mt-d,.viab p,.lede,.callout{color:var(--ink)}
+.mc.back{color:var(--ink)}
 </style>
 </head>
 <body>
@@ -558,8 +571,8 @@ details.mxd>summary{cursor:pointer;color:var(--cyan);font-size:13px;margin:4px 0
   <button type="button" id="homeBtn" class="homebtn" aria-label="Back to team home"><span class="hb-ic">⌂</span><span>Home</span></button>
   <header class="top">
     <div>
-      <h1>Starlight Analytics</h1>
-      <p class="sub">Build your team, upload your replays, and get a clear picture of your best leads, worst matchups, and which Pokémon are pulling their weight. </p>
+      <h1>Pokemon Team Analysis</h1>
+      <p class="sub">It often takes a lot of effort to keep track of what works for your competitive Pokemon team and what does not. Build a team and upload replays to get feedback on how your team fares against the current metagame. </p>
       <div class="hdr-chips" id="hdrChips"></div>
     </div>
     <div class="actions">
