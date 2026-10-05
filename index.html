@@ -465,6 +465,21 @@ details.mxd>summary{cursor:pointer;color:var(--cyan);font-size:13px;margin:4px 0
 .viab{background:rgba(255,162,76,.07);border:1px solid rgba(255,162,76,.25);border-radius:12px;padding:10px 13px;margin-bottom:12px}
 .viab h4{margin:0 0 4px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--atk)}
 .viab p{margin:0;font-size:13.5px;line-height:1.6}.vbad{color:var(--rose);font-weight:700}
+
+/* ===== views ===== */
+.viewbar{display:flex;align-items:center;gap:12px;margin:-6px 0 16px;min-height:34px}
+.vbt{font-size:13px;color:var(--ink-dim)}
+.view-home main.grid>.center,.view-home main.grid>.overview{display:none!important}
+.view-mon main.grid>.full{display:none!important}
+.view-home main.grid{grid-template-columns:1fr!important}
+.slot{cursor:pointer;transition:transform .15s,border-color .15s}
+.slot:hover{transform:translateY(-2px);border-color:rgba(255,230,163,.5)}
+.slot svg{width:74px!important;height:74px!important}
+.slot .mspin{animation:spin 40s linear infinite}
+.scanstat{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46%;font-size:11px}
+.view-home #btnClear{display:none}
+.ov-title svg{width:70px!important;height:70px!important}
+@media (prefers-reduced-motion:reduce){.slot .mspin{animation:none}}
 .mustack{flex:1;display:flex;flex-direction:column;gap:12px;min-height:0}
 .mustack .mu{aspect-ratio:auto;flex:1 1 0;min-height:0}
 @media (max-width:1180px){.grid{grid-template-columns:1fr 1fr!important}.center{grid-column:1/-1;order:-1}.mucol{contain:none}.mustack .mu{flex:none}}
@@ -495,6 +510,7 @@ details.mxd>summary{cursor:pointer;color:var(--cyan);font-size:13px;margin:4px 0
 
   <nav class="team" id="team" aria-label="Team slots"></nav>
 
+  <div class="viewbar" id="viewbar"></div>
   <main class="grid">
     <section class="panel overview" aria-labelledby="h-ov">
       <div class="ov-head"><h2 id="h-ov" class="mint">Overview</h2><span class="scanstat" id="scanStat" aria-live="polite"><i></i><span></span></span>
@@ -744,6 +760,22 @@ function stars(){const c=document.getElementById('stars'),d=devicePixelRatio||1,
 /* constellation geometry shared by slot icons and the portrait */
 function geom(s,cx,cy,scale,dmin=38,dspan=48){const r=mul(hash(s.n));const pts=[];for(let i=0;i<6;i++){const a=(i/6)*Math.PI*2+(r()-.5)*.9,d=(dmin+r()*dspan)*scale;pts.push([cx+Math.cos(a)*d,cy+Math.sin(a)*d]);}
   const order=[0,1,2,3,4,5].sort(()=>r()-.5);const seq=order.map(i=>pts[i]);if(r()<.6)seq.push(pts[order[Math.floor(r()*3)]]);return {pts,seq};}
+
+/* small emblem icon: the constellation behind a type medallion with the type glyph */
+function miniEmblem(s,shiny){if(!s)return miniConst(null);const P='me'+hash(s.n+(shiny?'s':''));const t1=s.t[0],t2=s.t[1];const c1=TC[t1],c2=TC[t2||t1];
+  const {pts,seq}=geom(s,100,100,1,80,16);const mx=Math.max(...s.s);const sc=shiny?'#ffe6a3':c1;
+  let ticks='';for(let i=0;i<24;i++){const a=i/24*Math.PI*2,r1=66,r2=i%3===0?73:70;ticks+=`<line x1="${(100+Math.cos(a)*r1).toFixed(1)}" y1="${(100+Math.sin(a)*r1).toFixed(1)}" x2="${(100+Math.cos(a)*r2).toFixed(1)}" y2="${(100+Math.sin(a)*r2).toFixed(1)}" stroke="${i%3===0?c1:c2}" stroke-opacity="${i%3===0?.9:.5}" stroke-width="${i%3===0?2.2:1.2}"/>`;}
+  return `<svg viewBox="0 0 200 200" role="img" aria-label="${esc(s.n)} emblem"><defs>
+    <radialGradient id="${P}c" cx="50%" cy="38%" r="70%"><stop offset="0" stop-color="${c1}" stop-opacity=".6"/><stop offset=".75" stop-color="#0d1240"/><stop offset="1" stop-color="#060a22"/></radialGradient>
+    <linearGradient id="${P}r" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient>
+    <filter id="${P}g" x="-60%" y="-60%" width="220%" height="220%"><feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="${c1}" flood-opacity=".9"/></filter></defs>
+   <g opacity=".75"><path d="M${seq.map(q=>q.map(v=>v.toFixed(1)).join(' ')).join(' L')}" fill="none" stroke="${sc}" stroke-opacity=".55" stroke-width="1.8"/>${pts.map((q,i)=>`<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="${(2.5+s.s[i]/mx*5).toFixed(1)}" fill="${i%2?(shiny?'#fff3c9':c2):sc}"/>`).join('')}</g>
+   <g class="mspin" style="transform-origin:100px 100px">${ticks}</g>
+   <circle cx="100" cy="100" r="60" fill="url(#${P}c)" stroke="url(#${P}r)" stroke-width="5"/>
+   <circle cx="100" cy="100" r="52" fill="none" stroke="#fff" stroke-opacity=".22"/>
+   <g transform="translate(100 100) scale(2.7)" filter="url(#${P}g)">${glyph(t1,'#fff')}</g>
+   ${t2?`<g transform="translate(146 54)"><circle r="19" fill="#0b0f36"/><circle r="16" fill="${c2}" stroke="#fff" stroke-opacity=".5"/><g transform="scale(.62)">${glyph(t2,'#10122a')}</g></g>`:''}
+   ${shiny?'<text x="40" y="50" font-size="28" fill="#ffe6a3" text-anchor="middle">✦</text>':''}</svg>`;}
 function miniConst(s,shiny){
   if(!s)return `<svg viewBox="0 0 200 200" role="img" aria-label="Empty slot"><circle cx="100" cy="100" r="40" fill="none" stroke="rgba(160,170,255,.25)" stroke-dasharray="4 6"/><circle cx="100" cy="100" r="2" fill="rgba(160,170,255,.5)"/></svg>`;
   const {pts,seq}=geom(s,100,100,1);const c1=shiny?'#ffe6a3':TC[s.t[0]],c2=shiny?'#fff3c9':TC[s.t[1]||s.t[0]];const mx=Math.max(...s.s);
@@ -985,9 +1017,9 @@ fmtSel.onchange=e=>{const to=e.target.value;if(to===state.format)return;
 function commit(light){save();if(light){renderStats();renderTeam();return;}render();}
 
 function renderTeam(){document.getElementById('team').innerHTML=state.team.map((p,i)=>{const s=spOf(p),v=shown(p);
-  if(!s)return `<button class="slot empty" data-i="${i}" aria-current="${i===state.active}" aria-label="Slot ${i+1} (empty)"><span class="idx">${i+1}</span>${miniConst(null)}<span class="nm">Add Pokémon</span><span class="it">&nbsp;</span></button>`;
+  if(!s)return `<button class="slot empty" data-i="${i}" aria-current="${VIEW==='mon'&&i===state.active}" aria-label="Slot ${i+1} (empty)"><span class="idx">${i+1}</span>${miniConst(null)}<span class="nm">Add Pokémon</span><span class="it">&nbsp;</span></button>`;
   const bst=v.s.reduce((x,y)=>x+y,0),c1=TC[v.t[0]],c2=TC[v.t[1]||v.t[0]];
-  return `<button class="slot" data-i="${i}" aria-current="${i===state.active}" aria-label="Slot ${i+1}: ${esc(s.n)}" style="--c1:${c1};--c2:${c2}"><span class="idx">${i+1}</span>${megaIdx(p)>=0?'<span class="mbadge">MEGA</span>':''}${miniConst(v,p.shiny)}
+  return `<button class="slot" data-i="${i}" aria-current="${VIEW==='mon'&&i===state.active}" aria-label="Open ${esc(s.n)}" style="--c1:${c1};--c2:${c2}"><span class="idx">${i+1}</span>${megaIdx(p)>=0?'<span class="mbadge">MEGA</span>':''}${miniEmblem(v,p.shiny)}
   <span class="nm" style="color:${c1}">${esc(p.nick||s.n)}${p.shiny?' <span style="color:var(--moon)">✦</span>':''}</span>
   <span class="stypes">${v.t.map(pill).join('')}</span>
   <span class="it">${esc(p.item)||'No item'}</span>
@@ -999,7 +1031,7 @@ function renderHeaderChips(){const el=document.getElementById('hdrChips');if(!el
   el.innerHTML=`<span class="hchip"><i>◆</i>Format <b>${isChamp()?'Champions':'Classic'}</b></span><span class="hchip"><i>◆</i>Team <b>${mons.length}/6</b></span>
    <span class="hchip"><i>◆</i>Types covered <b>${types.size}</b></span>${megas.length?`<span class="hchip"><i>◆</i>Mega options <b>${megas.map(esc).join(' / ')}</b></span>`:''}
    <span class="hchip"><i>◆</i>Logged <b>${matches.games.length}</b> game${matches.games.length===1?'':'s'}${sets.size?` · <b>${sets.size}</b> set${sets.size===1?'':'s'}`:''}</span>`;}
-document.getElementById('team').addEventListener('click',e=>{const b=e.target.closest('.slot');if(b){ovEditing=false;state.active=+b.dataset.i;save();render();runScan();}});
+document.getElementById('team').addEventListener('click',e=>{const b=e.target.closest('.slot');if(b)openMon(+b.dataset.i);});
 
 
 /* radar of final stats plus speed benchmarks */
@@ -1675,7 +1707,7 @@ function renderOverview(){const body=document.getElementById('ovBody');if(!body)
   const src=saved?(saved.src==='you'?'Edited by you.':`Redrafted by Claude.`):def?(['Raichu','Arcanine-Hisui','Gholdengo'].includes(key)?'Written by you.':'Written by Claude to match your write-ups.'):'Auto summary from your logged games. Redraft with Claude for a full write-up.';
   const label=v.n.includes('-Mega')?'Mega '+v.n.replace(/-Mega(-([XYZ]))?$/,(m,a,b)=>b?' '+b:''):(p.nick||nm);
   const heads=['Strengths','Counters and weaknesses','Role on the team'];
-  body.innerHTML=`<div class="ov-title">${miniConst(v,p.shiny)}<div><div class="ov-name" style="color:${TC[v.t[0]]}">${esc(label)}</div><div class="types" style="margin:4px 0 2px">${v.t.map(pill).join('')}</div>
+  body.innerHTML=`<div class="ov-title">${miniEmblem(v,p.shiny)}<div><div class="ov-name" style="color:${TC[v.t[0]]}">${esc(label)}</div><div class="types" style="margin:4px 0 2px">${v.t.map(pill).join('')}</div>
       <div class="ov-rec">${br.length?`Brought <b>${br.length}</b> of ${G.length} games · <b>${w}–${br.length-w}</b> (${pct(w/br.length)})`:'Not brought in your logged games yet'}</div></div></div>
     <div class="ov-chips"><span class="ovc">Ability <b>${esc(p.ability||'—')}</b></span>${megaIdx(p)>=0?`<span class="ovc">Mega ability <b>${esc(SPECIES[megaIdx(p)].a[0])}</b></span>`:''}<span class="ovc">Item <b>${esc(p.item||'None')}</b></span><span class="ovc">Nature <b>${esc(p.nature)}</b></span><span class="ovc">Base Speed <b>${v.s[5]}</b></span></div>
     ${paras.map((t,i)=>`<h3 class="ov-h p${i+1}">${heads[i]}</h3>${ovEditing?`<textarea class="ov-edit" data-i="${i}" aria-label="${heads[i]}">${esc(t.replace(/<[^>]+>/g,''))}</textarea>`:`<p class="ov-p">${/<b/.test(t)?t:esc(t)}</p>`}`).join('')}
@@ -1777,13 +1809,27 @@ function runScan(){if(RM.matches)return;const tok=++SCAN.tok;const p=cur();if(!s
 /* clicking the overview while it types finishes it instantly */
 document.getElementById('ovBody').addEventListener('click',()=>{if(!SCAN.done&&TYPE){SCAN.pos=TYPE.total;finishScan(SCAN.tok);}});
 
+
+/* ---------- home view vs single-Pokémon view ---------- */
+let VIEW='home';
+function setView(v,push){VIEW=v;document.body.classList.toggle('view-home',v==='home');document.body.classList.toggle('view-mon',v==='mon');
+  const vb=document.getElementById('viewbar');const p=cur(),s=spOf(p);
+  vb.innerHTML=v==='mon'?`<button type="button" class="ghost" id="goHome">← Back to team home</button><span class="vbt">Viewing <b style="color:${s?TC[shown(p).t[0]]:'var(--ink)'}">${s?esc(p.nick||s.n):'empty slot '+(state.active+1)}</b> · slot ${state.active+1} of 6</span>`
+    :`<span class="vbt">Team home · pick a Pokémon above to see its stats and overview</span>`;
+  const gh=document.getElementById('goHome');if(gh)gh.onclick=()=>goHome();
+  if(push){const h=v==='mon'?'#pokemon-'+(state.active+1):'#home';if(location.hash!==h)history.pushState(null,'',h);}
+  renderTeam();if(v==='mon')scheduleFit();}
+function openMon(i){ovEditing=false;state.active=i;save();setView('mon',true);render();window.scrollTo({top:0,behavior:'smooth'});runScan();}
+function goHome(){if(!SCAN.done){SCAN.tok++;SCAN.done=true;}setView('home',true);renderInsights();}
+addEventListener('popstate',()=>{const m=location.hash.match(/^#pokemon-(\d)$/);if(m){state.active=+m[1]-1;setView('mon',false);render();runScan();}else setView('home',false);});
+
 /* ---------- boot ---------- */
 if(!state){const r=importText(STARTER);while(r.team.length<6)r.team.push(blank());state={team:r.team,active:0,format:r.format};}
 if(!state.format)state.format='champions';
 allMoveItems=MOVES.map((m,i)=>mvItem(i));
 stars();addEventListener('resize',()=>{clearTimeout(window.__st);window.__st=setTimeout(stars,150);});
 render();renderInsights();
-setTimeout(runScan,350);
+{const m=location.hash.match(/^#pokemon-(\d)$/);if(m){state.active=+m[1]-1;setView('mon',false);render();setTimeout(runScan,350);}else setView('home',false);}
 
 (async()=>{try{if(window.claude&&window.claude.use)window.claude.use('sample').then(f=>{SAMPLE=f;renderOverview();}).catch(()=>{});}catch(e){}})();
 (async()=>{try{if(!window.claude||!window.claude.use)return;const [db,user]=await Promise.all([window.claude.use('db'),window.claude.use('user')]);if(!db||!user)return;
