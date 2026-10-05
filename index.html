@@ -437,6 +437,34 @@ h1::after{content:"";display:block;height:2px;margin-top:10px;width:100%;backgro
 .tb b{white-space:nowrap;font-size:12px}
 .td{color:var(--ink-dim);font-size:12px}.td em{color:var(--ink-faint);font-style:normal}
 @media (max-width:700px){.tr{grid-template-columns:110px 1fr}.td{grid-column:1/-1}.ub{grid-template-columns:1fr}}
+
+/* ===== game log teams, archetype cards, loss drivers, viability ===== */
+.six{display:flex;flex-wrap:wrap;gap:4px;max-width:360px}
+.mc{font-size:11.5px;font-weight:700;border-radius:999px;padding:2px 8px;border:1px solid color-mix(in srgb,var(--mc) 70%,transparent);white-space:nowrap;line-height:1.5}
+.mc.lead{background:var(--mc);color:#10122a}
+.mc.lead i{font-style:normal;font-size:9px;margin-right:4px}
+.mc.back{background:color-mix(in srgb,var(--mc) 30%,transparent);color:var(--ink)}
+.mc.home{color:var(--ink-faint);border-color:rgba(160,170,255,.15);opacity:.55;text-decoration:line-through;text-decoration-color:rgba(160,170,255,.35)}
+.glog tr.lossrow td:first-child{box-shadow:inset 3px 0 0 var(--rose)}
+.glog td{vertical-align:top;padding-top:10px;padding-bottom:10px}
+.acards{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:10px;margin-bottom:10px}
+.acard{background:rgba(8,12,40,.6);border:1px solid var(--panel-edge);border-radius:12px;padding:11px 12px}
+.ach{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px}.ach b{font-family:var(--display);font-size:15px;color:var(--mint)}.ach span{font-size:12px;color:var(--ink-dim)}
+.acl{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-faint);font-weight:700;margin-bottom:5px}
+.afour{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.af{display:flex;justify-content:space-between;gap:6px;font-size:12.5px;background:rgba(255,255,255,.04);border-radius:8px;padding:4px 8px}.af small{color:var(--ink-dim);font-variant-numeric:tabular-nums}
+.ax{font-size:12px;color:var(--ink-dim);margin-top:7px}
+details.mxd>summary{cursor:pointer;color:var(--cyan);font-size:13px;margin:4px 0 8px}
+.ld{display:flex;flex-direction:column;gap:8px}
+.ldr{display:grid;grid-template-columns:110px 1fr;gap:4px 10px;align-items:center}
+.ldn{grid-row:span 2;font-weight:700;font-size:13px}
+.ldb{display:grid;grid-template-columns:42px minmax(0,1fr) 36px;gap:8px;align-items:center;font-size:11px;color:var(--ink-faint)}
+.ldb b{color:var(--ink);text-align:right;font-variant-numeric:tabular-nums;font-size:12px}
+.ldt{display:flex;height:8px;border-radius:5px;background:rgba(255,255,255,.06);overflow:hidden}
+.ldt i{display:block;height:100%}.ldt i.w{background:#8ff0c0}.ldt i.l{background:#ff94c8}
+.viab{background:rgba(255,162,76,.07);border:1px solid rgba(255,162,76,.25);border-radius:12px;padding:10px 13px;margin-bottom:12px}
+.viab h4{margin:0 0 4px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--atk)}
+.viab p{margin:0;font-size:13.5px;line-height:1.6}.vbad{color:var(--rose);font-weight:700}
 .mustack{flex:1;display:flex;flex-direction:column;gap:12px;min-height:0}
 .mustack .mu{aspect-ratio:auto;flex:1 1 0;min-height:0}
 @media (max-width:1180px){.grid{grid-template-columns:1fr 1fr!important}.center{grid-column:1/-1;order:-1}.mucol{contain:none}.mustack .mu{flex:none}}
@@ -1296,7 +1324,7 @@ function parseReplay(text,fileName){const log=replayLog(text);if(!log)return nul
   const opp=me==='p1'?'p2':'p1';
   const rid=(text.match(/name="replayid" value="([^"]+)"/)||[])[1]||fileName||'';
   return {win:winner===players[me],leads:leads[me],back:seen[me].filter(n=>!leads[me].includes(n)).slice(0,2),oppLeads:leads[opp],oppBack:seen[opp].filter(n=>!leads[opp].includes(n)).slice(0,2),
-    oppTeam:pokes[opp],kos:kos.map(k=>({a:k.a,t:k.t,m:k.m,mine:k.as===me})),...(c=>({arch:c.arch,archWhy:c.why,archV:2}))(classifyGame(log,opp)),archAuto:true,match:setId||rid,game:gameNo||1,opp:players[opp],player:players[me],replay:rid};}
+    oppTeam:pokes[opp],myTeam:pokes[me].map(n=>n.replace(/-Mega(-[XYZ])?$/,'')),kos:kos.map(k=>({a:k.a,t:k.t,m:k.m,mine:k.as===me})),...(c=>({arch:c.arch,archWhy:c.why,archV:2}))(classifyGame(log,opp)),archAuto:true,match:setId||rid,game:gameNo||1,opp:players[opp],player:players[me],replay:rid};}
 
 /* map names in the log onto team members (Mega and base names count as the same Pokémon) */
 function teamKeys(){const m=new Map();state.team.forEach(p=>{const s=spOf(p);if(!s)return;const label=s.n;const keys=[id(s.n),id(s.b),id(p.nick)];
@@ -1368,11 +1396,74 @@ function chartThreats(G){const tk=teamKeys();const withK=G.filter(g=>Array.isArr
      return `<div class="tr"><span class="tn">${PN(r.o)}</span><span class="tb"><i style="width:${r.n/mx*100}%;background:${monColor(r.o)}"></i><b>${r.n} KO${r.n>1?'s':''}</b></span>
      <span class="td">${esc(mv)} · took out ${vic.map(([v,c])=>`${PN(v)}${c>1?` ×${c}`:''}`).join(', ')} <em>· faced in ${r.f} game${r.f===1?'':'s'}</em></span></div>`;}).join('')}</div>${chartNote(withK.length,'This list')}`;}
 
+/* ---------- helpers for team chips and set results ---------- */
+const nid=n=>id(String(n||'').replace(/-Mega(-[XYZ])?$/,''));
+function teamChips(six,leads,back){const L=new Set((leads||[]).map(nid)),B=new Set((back||[]).map(nid));
+  return `<span class="six">${(six||[]).map(n=>{const k=nid(n),c=monColor(n);const cls=L.has(k)?'lead':B.has(k)?'back':'home';
+    return `<span class="mc ${cls}" style="--mc:${c}" title="${esc(n)}: ${cls==='lead'?'led':cls==='back'?'brought in the back':'stayed home'}">${cls==='lead'?'<i>◆</i>':''}${esc(n)}</span>`;}).join('')}</span>`;}
+function mySix(g){if(Array.isArray(g.myTeam)&&g.myTeam.length)return g.myTeam;return state.team.map(p=>spOf(p)?.n).filter(Boolean);}
+function oppSix(g){const s=(g.oppTeam||[]).slice();[...(g.oppLeads||[]),...(g.oppBack||[])].forEach(n=>{if(!s.some(x=>nid(x)===nid(n)))s.push(n);});return s;}
+function setsOf(G){const m=new Map();G.forEach(g=>{const k=g.match||('single-'+g._i);const e=m.get(k)||{k,games:[],w:0,l:0};e.games.push(g);g.win?e.w++:e.l++;m.set(k,e);});
+  return [...m.values()].map(s=>({...s,won:s.w>s.l,opp:s.games[0].opp||'Opponent',order:Math.min(...s.games.map(gameOrder))}));}
+const sentOut=g=>[...new Set([...(g.oppLeads||[]),...(g.oppBack||[])].map(String))];
+
+/* ---------- losses tied to opposing Pokémon ---------- */
+function chartLossDrivers(G){if(!G.length)return '';const S=setsOf(G);const m=new Map();
+  const get=o=>{if(!m.has(o))m.set(o,{o,g:0,gl:0,s:0,sl:0});return m.get(o);};
+  G.forEach(g=>sentOut(g).forEach(o=>{const e=get(o);e.g++;if(!g.win)e.gl++;}));
+  S.forEach(s=>{const seen=new Set();s.games.forEach(g=>sentOut(g).forEach(o=>seen.add(o)));seen.forEach(o=>{const e=get(o);e.s++;if(!s.won)e.sl++;});});
+  const rows=[...m.values()].filter(e=>e.gl>0&&e.g>=2).sort((a,b)=>(b.sl/b.s)-(a.sl/a.s)||(b.gl/b.g)-(a.gl/a.g)||b.gl-a.gl).slice(0,9);
+  if(!rows.length)return '<p class="lede">No losses yet, so nothing stands out.</p>';
+  const lostSets=S.filter(s=>!s.won).length,lostGames=G.filter(g=>!g.win).length;const mxS=Math.max(1,...rows.map(r=>r.s)),mxG=Math.max(1,...rows.map(r=>r.g));
+  const top=rows[0];const every=[...m.values()].filter(e=>lostSets&&e.sl===lostSets).sort((x,y)=>y.gl-x.gl);
+  return `<p class="lede">Opposing Pokémon ranked by how often you lost the set when they were sent out (a set is lost when you lose two of its games), then by games lost. Pokémon seen only once are left out. ${PN(top.o)} tops the list: you are ${top.s-top.sl}–${top.sl} in sets and ${top.g-top.gl}–${top.gl} in games when it comes out.${every.length?` ${every.slice(0,3).map(e=>PN(e.o)).join(', ')} ${every.length>1?'were':'was'} sent out in every set you lost.`:''}</p>
+   <div class="ld">${rows.map(r=>`<div class="ldr"><span class="ldn">${PN(r.o)}</span>
+     <span class="ldb"><span class="ldl">Sets</span><span class="ldt"><i class="w" style="width:${(r.s-r.sl)/mxS*100}%"></i><i class="l" style="width:${r.sl/mxS*100}%"></i></span><b>${r.s-r.sl}–${r.sl}</b></span>
+     <span class="ldb"><span class="ldl">Games</span><span class="ldt"><i class="w" style="width:${(r.g-r.gl)/mxG*100}%"></i><i class="l" style="width:${r.gl/mxG*100}%"></i></span><b>${r.g-r.gl}–${r.gl}</b></span></div>`).join('')}</div>
+   <div class="legend"><span><i style="background:#8ff0c0"></i>Won when it was sent out</span><span><i style="background:#ff94c8"></i>Lost when it was sent out</span></div>${chartNote(G.length,'This ranking')}`;}
+
+/* ---------- overall viability paragraph for the threats box ---------- */
+function viability(G){if(G.length<2)return '';const S=setsOf(G);const sw=S.filter(s=>s.won).length;const gw=G.filter(g=>g.win).length;
+  const pairRows=key=>aggregate(g=>{const a=key(g);return a.length===2?a.slice().sort().join(' + '):null;},G).map(r=>({...r}));
+  const leads=pairRows(g=>g.oppLeads||[]),backs=pairRows(g=>g.oppBack||[]);
+  const pickBest=rows=>rows.filter(r=>r.n>=2).sort((a,b)=>b.rate-a.rate||b.n-a.n)[0],pickWorst=rows=>rows.filter(r=>r.n>=2).sort((a,b)=>a.rate-b.rate||b.n-a.n)[0];
+  const bl=pickBest(leads),wl=pickWorst(leads),bb=pickBest(backs),wb=pickWorst(backs);
+  const out=[];
+  out.push(`Overall the team is <b>${sw}–${S.length-sw}</b> in sets and <b>${gw}–${G.length-gw}</b> in games (${pct(gw/G.length)}).`);
+  if(bl)out.push(`It is strongest against teams that lead ${PNS(bl.k)} (${bl.w}–${bl.n-bl.w})${bb?` and keep ${PNS(bb.k)} in the back (${bb.w}–${bb.n-bb.w})`:''}.`);
+  if(wl&&(!bl||wl.k!==bl.k)&&wl.rate<=.5)out.push(`It struggles most against ${PNS(wl.k)} leads (${wl.w}–${wl.n-wl.w})${wb&&wb.rate<=.5&&(!bb||wb.k!==bb.k)?`, and against ${PNS(wb.k)} coming from the back (${wb.w}–${wb.n-wb.w})`:''}.`);
+  /* archetypes that most of the team loses to whatever four you bring */
+  const mons=state.team.map(p=>spOf(p)?.n).filter(Boolean);const weak=[],strong=[];
+  aggregate(g=>g.arch||null,G).forEach(a=>{if(a.n<3)return;let used=0,below=0;
+    mons.forEach(m=>{const br=a.games.filter(g=>[...g.leads,...g.back].includes(m));if(br.length>=2){used++;if(br.filter(g=>g.win).length/br.length<.5)below++;}});
+    const as=setsOf(a.games);const asw=as.filter(s=>s.won).length;
+    if(a.rate<.5&&used>=3&&below>=Math.ceil(used*.75))weak.push(`${esc(a.k)} (${a.w}–${a.n-a.w} in games, ${asw}–${as.length-asw} in sets; ${below} of the ${used} Pokémon you brought there have a losing record)`);
+    else if(a.rate>=.67)strong.push(`${esc(a.k)} (${a.w}–${a.n-a.w})`);});
+  if(strong.length)out.push(`It handles ${strong.join(', ')} well.`);
+  const wa=aggregate(g=>g.arch||null,G).filter(x=>x.n>=3).sort((x,y)=>x.rate-y.rate||y.n-x.n)[0];
+  if(wa&&wa.rate<.67){const ws=setsOf(wa.games),wsw=ws.filter(s=>s.won).length;out.push(`Its weakest archetype is ${esc(wa.k)} (${wa.w}–${wa.n-wa.w} in games, ${wsw}–${ws.length-wsw} in sets).`);}
+  if(weak.length)out.push(`<span class="vbad">Team-wide weakness:</span> ${weak.join('; ')}. Changing which four you bring hasn't fixed this, so it may need a team change rather than a different bring.`);
+  else out.push(`No archetype yet beats nearly every combination of four you bring, so losses so far look matchup- and bring-specific rather than structural.`);
+  return `<div class="viab"><h4>Team viability</h4><p>${out.join(' ')}</p></div>`;}
+
+/* ---------- best four per archetype ---------- */
+function archCards(G){const mons=state.team.map(p=>spOf(p)?.n).filter(Boolean);const archs=aggregate(g=>g.arch||'Untagged',G).sort((a,b)=>b.n-a.n);
+  return `<div class="acards">${archs.map(a=>{const as=setsOf(a.games),asw=as.filter(s=>s.won).length;
+    const sc=mons.map(m=>{const br=a.games.filter(g=>[...g.leads,...g.back].includes(m));const w=br.filter(g=>g.win).length;return {m,n:br.length,w,score:(w+1)/(br.length+2)};})
+      .sort((x,y)=>y.score-x.score||y.n-x.n);const four=sc.slice(0,4);
+    const fours=aggregate(g=>{const x=[...g.leads,...g.back];return x.length===4?x.slice().sort().join(' · '):null;},a.games).sort((x,y)=>y.lb-x.lb||y.n-x.n);const bf=fours[0];
+    const fset=new Set(four.map(f=>f.m));const ld=aggregate(g=>g.leads.every(x=>fset.has(x))&&g.leads.length===2?g.leads.slice().sort().join(' + '):null,a.games).sort((x,y)=>y.rate-x.rate||y.n-x.n)[0];
+    return `<div class="acard"><div class="ach"><b>${esc(a.k)}</b><span>${a.w}–${a.n-a.w} games · ${asw}–${as.length-asw} sets</span></div>
+      <div class="acl">Highest chance to win</div><div class="afour">${four.map(f=>`<span class="af">${PN(f.m)}<small>${f.n?`${f.w}–${f.n-f.w}`:'untested'}</small></span>`).join('')}</div>
+      ${ld?`<div class="ax">Best lead from these: ${PNS(ld.k)} (${ld.w}–${ld.n-ld.w})</div>`:''}
+      ${bf?`<div class="ax">${bf.rate>=.5?'Best four you\'ve actually brought':'No winning four yet. Most tried'}: ${PNS(bf.k)} (${bf.w}–${bf.n-bf.w})</div>`:''}</div>`;}).join('')}</div>
+   <p class="covnote">The four are ranked by each Pokémon's record when brought into that archetype, adjusted so one lucky game doesn't outrank a solid record. "Untested" means it hasn't been brought into that archetype yet.</p>`;}
+
 const INSIGHTS=[
  {id:'trend',title:'Win rate over time',color:'var(--cyan)',wide:true,render:G=>chartTrend(G)},
  {id:'usage',title:'Usage and win rate by Pokémon',color:'var(--moon)',render:G=>chartUsage(G)},
- {id:'kotrade',title:'Knockouts dealt vs. taken',color:'var(--mint)',render:G=>chartKOs(G)},
- {id:'threats',title:'Biggest threats to your team',color:'var(--rose)',wide:true,render:G=>chartThreats(G)},
+ {id:'lossdrv',title:'Opposing Pokémon behind your losses',color:'var(--rose)',render:G=>chartLossDrivers(G)},
+ {id:'threats',title:'Biggest threats to your team',color:'var(--atk)',wide:true,render:G=>viability(G)+chartThreats(G)},
  {id:'leads',title:'Leads that win most',color:'var(--cyan)',render(G,ctx){
    const rows=aggregate(g=>g.leads.length===2?g.leads.slice().sort().join(' + '):null,G).sort((a,b)=>b.lb-a.lb||b.n-a.n);
    const ok=rows.filter(r=>r.n>=minGames);if(!rows.length)return '<p class="lede">No lead data yet.</p>';
@@ -1408,22 +1499,27 @@ const INSIGHTS=[
      const ld=aggregate(g=>g.leads.slice().sort().join(' + '),a.games).filter(x=>x.n>=2).sort((x,y)=>y.lb-x.lb)[0];
      rows+=`<tr><th>${esc(a.k)}</th><td>${a.n}</td><td>${pct(a.rate)}</td>${cells}<td style="text-align:left;font-size:12px">${ld?`${PNS(ld.k)} <small>${ld.w}–${ld.n-ld.w}</small>`:'–'}</td></tr>`;}
    notes.sort((a,b)=>b.d-a.d);
-   return `${notes.slice(0,3).map(n=>`<p class="callout ${n.good?'good':'bad'}">${n.t}</p>`).join('')||`<p class="lede">No standout patterns yet with ${minGames}+ games per cell. Keep logging.</p>`}
+   return `${archCards(G)}<details class="mxd"><summary>Per-Pokémon breakdown by archetype</summary>
    <div class="cov"><table class="mx"><thead><tr><th>Archetype</th><th>Games</th><th>Team win</th>${mons.map(m=>`<th style="text-align:center">${PNS(m)}</th>`).join('')}<th>Best lead</th></tr></thead><tbody>${rows}</tbody></table></div>
-   <p class="covnote">Each cell is the win rate when that Pokémon was brought into that archetype. Green and pink mark gaps of 15 points or more from the team's rate, once there are ${minGames}+ games.</p>`;}},
+   <p class="covnote">Each cell is the win rate when that Pokémon was brought into that archetype. Green and pink mark gaps of 15 points or more from the team's rate, once there are ${minGames}+ games.</p></details>`;}},
  {id:'log',title:'Game log',color:'var(--moon)',wide:true,render(G){
    const fopts=sel=>`<option value="">No folder</option>${matches.folders.map(f=>`<option value="${f.id}"${f.id===sel?' selected':''}>${esc(f.name)}</option>`).join('')}<option value="__new">New folder…</option>`;
    const groups=[];const byKey=new Map();G.forEach(g=>{const k=g.match||('single-'+g._i);if(!byKey.has(k)){const e={k,games:[]};byKey.set(k,e);groups.push(e);}byKey.get(k).games.push(g);});
-   groups.reverse();
-   const row=g=>`<tr><td>${g.game?'G'+g.game:''}</td><td style="color:${g.win?'var(--mint)':'var(--rose)'};font-weight:700">${g.win?'Win':'Loss'}</td>
-     <td>${PNS(g.leads.join(' + '))}</td><td>${PNS(g.back.join(' + '))}</td><td>${PNS((g.oppLeads||[]).join(' + '))}</td>
+   groups.sort((x,y)=>Math.min(...y.games.map(gameOrder))-Math.min(...x.games.map(gameOrder)));
+   const row=g=>`<tr class="${g.win?'':'lossrow'}"><td>${g.game?'G'+g.game:''}</td><td style="color:${g.win?'var(--mint)':'var(--rose)'};font-weight:700">${g.win?'Win':'Loss'}</td>
+     <td>${teamChips(mySix(g),g.leads,g.back)}</td><td>${teamChips(oppSix(g),g.oppLeads,g.oppBack)}</td>
      <td><input type="text" class="archin" data-i="${g._i}" value="${esc(g.arch||'')}" aria-label="Archetype for game" list="archList" style="padding:4px 8px;font-size:13px;width:116px" title="${esc(g.archWhy||'')}">${g.archAuto!==false&&g.archWhy?`<small style="display:block;color:var(--ink-faint);max-width:200px;margin-top:3px;line-height:1.3">${esc(g.archWhy)}</small>`:g.archAuto===false?'<small style="display:block;color:var(--ink-faint);margin-top:3px">set by you</small>':''}</td>
      <td><select class="mvf" data-i="${g._i}" aria-label="Folder for game" style="padding:4px 26px 4px 8px;font-size:13px;width:132px">${fopts(g.folder||'')}</select></td>
      <td style="white-space:nowrap">${g.file?`<button type="button" class="viewg" data-i="${g._i}" style="padding:4px 10px;font-size:12px">View replay</button> `:''}<button type="button" class="ghost delg" data-i="${g._i}" style="padding:4px 10px;font-size:12px" aria-label="Remove this game">Remove</button></td></tr>`;
-   return `<p class="lede">Games are grouped by best-of-three set. Open a set to see its games, view replays, or move them to another folder.</p>${groups.map(gr=>{const gs=gr.games.slice().sort((x,y)=>(x.game||0)-(y.game||0));const w=gs.filter(g=>g.win).length,l=gs.length-w;
-     const res=w>l?'Won':w<l?'Lost':'Tied';const opp=gs[0].opp||'Opponent';const arch=[...new Set(gs.map(g=>g.arch).filter(Boolean))].join(', ');
+   const losses=G.filter(g=>!g.win);const inL=new Map();losses.forEach(g=>sentOut(g).forEach(o=>inL.set(o,(inL.get(o)||0)+1)));
+   const common=[...inL.entries()].sort((x,y)=>y[1]-x[1]).slice(0,4).filter(x=>x[1]>=2);
+   const mineL=new Map();losses.forEach(g=>[...g.leads,...g.back].forEach(m=>mineL.set(m,(mineL.get(m)||0)+1)));const mineC=[...mineL.entries()].sort((x,y)=>y[1]-x[1]).slice(0,4);
+   return `<p class="lede">Games are grouped by best-of-three set, newest first. Each row shows both full teams: bright chips were brought, ◆ marks the leads, and faded chips stayed home.</p>
+   ${losses.length&&common.length?`<p class="callout bad">Across your ${losses.length} lost games, the opponent most often sent out ${common.map(([o,c])=>`${PN(o)} (${c})`).join(', ')}. On your side you most often had ${mineC.map(([o,c])=>`${PN(o)} (${c})`).join(', ')} on the field.</p>`:''}
+   ${groups.map(gr=>{const gs=gr.games.slice().sort((x,y)=>(x.game||0)-(y.game||0));const w=gs.filter(g=>g.win).length,l=gs.length-w;
+     const res=w>l?'Won':w<l?'Lost':'Tied';const opp=gs[0].opp||'Opponent';gs.forEach(g=>g._setLost=w<l);const arch=[...new Set(gs.map(g=>g.arch).filter(Boolean))].join(', ');
      return `<details class="set" data-k="${esc(gr.k)}"${openSets.has(gr.k)?' open':''}><summary><b>vs ${esc(opp)}</b><span class="res" style="color:${w>l?'var(--mint)':w<l?'var(--rose)':'var(--ink-dim)'}">${res} ${w}–${l}</span><span class="sub2">${gs.length} game${gs.length>1?'s':''}${arch?' · '+esc(arch):''}</span></summary>
-       <div class="cov"><table class="rk" style="min-width:860px"><thead><tr><th>Game</th><th>Result</th><th>Your leads</th><th>Your back</th><th>Their leads</th><th>Archetype</th><th>Folder</th><th></th></tr></thead><tbody>${gs.map(row).join('')}</tbody></table></div></details>`;}).join('')}
+       <div class="cov"><table class="rk glog" style="min-width:1080px"><thead><tr><th>Game</th><th>Result</th><th>Your team</th><th>Their team</th><th>Archetype</th><th>Folder</th><th></th></tr></thead><tbody>${gs.map(row).join('')}</tbody></table></div></details>`;}).join('')}
      <datalist id="archList">${['Rain','Sun','Sand','Snow','Trick Room','Tailwind','Perish Trap','Psychic Terrain','Electric Terrain','Misty Terrain','Balance','Offense','Mirror','Other'].map(x=>`<option value="${x}">`).join('')}</datalist>`;}},
 ];
 
