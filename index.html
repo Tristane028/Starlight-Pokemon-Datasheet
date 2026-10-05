@@ -512,6 +512,35 @@ details.mxd>summary{cursor:pointer;color:var(--cyan);font-size:13px;margin:4px 0
 .pf-top{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin-bottom:6px}
 .pf-v{font:800 12px var(--body);letter-spacing:.05em;text-transform:uppercase;border:1.5px solid;border-radius:999px;padding:3px 10px}
 .pf-k{font-size:12.5px;color:var(--ink-dim)}.pf-k b{color:var(--ink)}
+
+/* ===== hero banner ===== */
+.herob{grid-column:1/-1;order:0;position:relative;overflow:hidden;min-height:320px;border-radius:22px;border:1px solid color-mix(in srgb,var(--h1,#7fdcff) 45%,transparent);
+  background:#070b26;display:grid;grid-template-columns:320px minmax(0,1fr);align-items:center;gap:20px;padding:10px 30px;
+  box-shadow:0 0 50px -12px var(--h1,transparent),inset 0 0 80px -30px var(--h2,transparent)}
+.view-home .herob{display:none!important}
+.hbg{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+.hstreak{animation:hflow linear infinite}
+@keyframes hflow{to{stroke-dashoffset:-600}}
+.hspark{animation:twk ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+.hrays{animation:spin 120s linear infinite}
+.hb-emb{position:relative;z-index:1;width:300px;height:300px;filter:drop-shadow(0 0 30px var(--h1))}
+.hb-emb .pt{width:100%;height:100%}
+.hb-info{position:relative;z-index:1}
+.hb-dex{font:700 13px var(--body);letter-spacing:.12em;color:var(--ink-dim)}
+.hb-mega{color:#10122a;background:linear-gradient(90deg,var(--h1),var(--h2));padding:2px 9px;border-radius:999px;letter-spacing:.08em}
+.hb-name{font:800 clamp(38px,6vw,76px)/1 var(--display);margin:6px 0 10px;letter-spacing:-.02em;color:#fff;
+  background:linear-gradient(95deg,#fff 0%,var(--h1) 45%,var(--h2) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 18px rgba(0,0,0,.5))}
+.hb-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.hb-chips span{font-size:13px;color:var(--ink-dim);background:rgba(6,10,34,.6);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:5px 11px;backdrop-filter:blur(4px)}
+.hb-chips b{color:var(--ink)}
+.hb-burst{position:absolute;left:180px;top:50%;width:0;height:0;z-index:2;pointer-events:none}
+.hb-burst i{position:absolute;left:0;top:0;width:300px;height:300px;margin:-150px 0 0 -150px;border-radius:50%;border:4px solid var(--h1);animation:hburst 1.2s cubic-bezier(.2,.8,.2,1) forwards;opacity:0}
+.hb-burst i:nth-child(2){border-color:var(--h2);animation-delay:.15s}.hb-burst i:nth-child(3){border-color:#fff;animation-delay:.3s}
+.hb-burst b{position:absolute;left:0;top:0;width:500px;height:500px;margin:-250px 0 0 -250px;border-radius:50%;background:radial-gradient(circle,#fff 0%,var(--h1) 25%,transparent 65%);animation:hflash .9s ease-out forwards}
+@keyframes hburst{0%{transform:scale(.2);opacity:1}100%{transform:scale(3.2);opacity:0}}
+@keyframes hflash{0%{opacity:.95;transform:scale(.3)}100%{opacity:0;transform:scale(1.6)}}
+@media (max-width:760px){.herob{grid-template-columns:1fr;justify-items:center;text-align:center;padding:16px}.hb-emb{width:240px;height:240px}.hb-chips{justify-content:center}.hb-burst{left:50%;top:140px}}
+@media (prefers-reduced-motion:reduce){.hstreak,.hspark,.hrays,.hb-burst{animation:none!important}.hb-burst{display:none}}
 .mustack{flex:1;display:flex;flex-direction:column;gap:12px;min-height:0}
 .mustack .mu{aspect-ratio:auto;flex:1 1 0;min-height:0}
 @media (max-width:1180px){.grid{grid-template-columns:1fr 1fr!important}.center{grid-column:1/-1;order:-1}.mucol{contain:none}.mustack .mu{flex:none}}
@@ -545,6 +574,7 @@ details.mxd>summary{cursor:pointer;color:var(--cyan);font-size:13px;margin:4px 0
 
   <div class="viewbar" id="viewbar"></div>
   <main class="grid">
+    <section class="herob" id="heroBanner" aria-label="Pokémon banner" hidden></section>
     <section class="panel overview" aria-labelledby="h-ov">
       <div class="ov-head"><h2 id="h-ov" class="mint">Overview</h2><span class="scanstat" id="scanStat" aria-live="polite"><i></i><span></span></span>
         <div class="ov-actions"><button type="button" class="ghost" id="ovEdit">Edit</button><button type="button" id="ovDraft" hidden>Redraft with Claude</button></div></div>
@@ -1121,8 +1151,8 @@ const lvl=document.getElementById('level');lvl.addEventListener('input',e=>{cur(
 document.querySelectorAll('[data-lv]').forEach(b=>b.onclick=()=>{cur().level=+b.dataset.lv;commit();});
 document.getElementById('nick').addEventListener('input',e=>{cur().nick=e.target.value;save();renderTeam();lastPortrait='';renderPortrait();});
 document.getElementById('shiny').onchange=e=>{cur().shiny=e.target.checked;commit();};
-document.getElementById('showBase').onclick=()=>{cur().showMega=false;commit();};
-document.getElementById('showMega').onclick=()=>{cur().showMega=true;commit();};
+document.getElementById('showBase').onclick=()=>{cur().showMega=false;heroKey='';commit();};
+document.getElementById('showMega').onclick=()=>{if(cur().showMega===false)megaBurst=true;cur().showMega=true;commit();};
 abSel.onchange=e=>{cur().ability=e.target.value;commit();};teraSel.onchange=e=>{cur().tera=e.target.value;commit();};
 natSel.onchange=e=>{cur().nature=e.target.value;commit();};document.getElementById('gender').onchange=e=>{cur().gender=e.target.value;commit();};
 
@@ -1217,7 +1247,7 @@ function render(){const p=cur(),s=spOf(p),v=shown(p),mi=megaIdx(p);
         <span class="mvtags">${conv?`<span class="stab" title="${esc(curAb)} turns Normal moves ${conv}-type with 1.2× power">${esc(curAb)}</span>`:''}${stab?'<span class="stab" title="Same-type attack bonus: 1.5× power">STAB</span>':''}</span>`;
       document.getElementById('mvi'+k).innerHTML=`${conv?`<span style="color:${c}">${esc(curAb)} makes it ${conv}-type.</span> `:''}${(stab||conv)&&m[3]?`<span class="effpow">Effective power ${effp}.</span> `:''}${esc(m[6]||'')}`;}
     else{wrap.style.removeProperty('--mc');wrap.classList.remove('has');card.innerHTML=`<span class="mvempty">＋ Choose move ${k+1}</span>`;document.getElementById('mvi'+k).innerHTML='';}}
-  renderStats();renderOverview();if(typeof renderPerf==='function')renderPerf();}
+  renderStats();renderOverview();if(typeof renderPerf==='function')renderPerf();if(typeof renderHero==='function')renderHero();}
 
 document.getElementById('btnClear').onclick=()=>{state.team[state.active]=blank();commit();toast('Slot cleared');};
 
@@ -1938,7 +1968,7 @@ function setView(v,push){VIEW=v;document.body.classList.toggle('view-home',v==='
   document.getElementById('homeBtn').onclick=()=>{goHome();window.scrollTo({top:0,behavior:'smooth'});};
   if(push){const h=v==='mon'?'#pokemon-'+(state.active+1):'#home';/* some embeds (sandboxed previews) block history changes; the views still work without them */try{if(location.hash!==h)history.pushState(null,'',h);}catch(e){}}
   renderTeam();if(v==='mon')scheduleFit();}
-function openMon(i){ovEditing=false;noteEditing=false;state.active=i;save();setView('mon',true);render();window.scrollTo({top:0,behavior:'smooth'});runScan();}
+function openMon(i){ovEditing=false;noteEditing=false;state.active=i;heroKey='';megaBurst=megaIdx(state.team[i])>=0&&state.team[i].showMega!==false;save();setView('mon',true);render();window.scrollTo({top:0,behavior:'smooth'});runScan();}
 function goHome(){if(!SCAN.done){SCAN.tok++;SCAN.done=true;}setView('home',true);renderInsights();}
 addEventListener('popstate',()=>{let m=null;try{m=location.hash.match(/^#pokemon-(\d)$/);}catch(e){}if(m){state.active=+m[1]-1;setView('mon',false);render();runScan();}else setView('home',false);});
 
@@ -1998,6 +2028,37 @@ function renderPerf(){const el=document.getElementById('perf');if(!el)return;con
     ${pts.map((q,j)=>`<circle cx="${X(j).toFixed(1)}" cy="${Y(q.rate).toFixed(1)}" r="2.4" fill="${col}"/>`).join('')}${dots}</svg></div>
    <div class="legend"><span><i style="background:${col}"></i>${esc(label)}'s win rate to date</span><span><i style="background:#fff;opacity:.6"></i>Its last 5 games</span><span><i style="background:#ffe6a3"></i>Team overall at the same point</span><span>Dots: each game it was brought, ringed if it led</span></div>
    ${chartNote(n,'This read')}`;}
+
+/* ---------- hero banner: large emblem on a type-colored energy backdrop ---------- */
+let heroKey='',megaBurst=false;
+function heroBackdrop(v,P){const c1=TC[v.t[0]],c2=TC[v.t[1]||v.t[0]];const r=mul(hash(v.n+'hero'));const W=1200,H=340,CX=230,CY=170;
+  let streaks='';for(let i=0;i<26;i++){const a=(-.9+r()*1.8)+(r()<.5?0:Math.PI*0)+(-0.15),len=380+r()*700,bend=(r()-.5)*220,sx=CX+Math.cos(a)*70,sy=CY+Math.sin(a)*70;
+    const ex=CX+Math.cos(a)*len,ey=CY+Math.sin(a)*len*.55,mx=(sx+ex)/2+bend*.3,my=(sy+ey)/2+bend;const w=1+r()*4.5,col=r()<.5?c1:c2;const d=(2.5+r()*3).toFixed(2);
+    streaks+=`<path d="M${sx.toFixed(0)} ${sy.toFixed(0)} Q${mx.toFixed(0)} ${my.toFixed(0)} ${ex.toFixed(0)} ${ey.toFixed(0)}" stroke="${col}" stroke-width="${w.toFixed(1)}" fill="none" stroke-linecap="round" opacity="${(.25+r()*.55).toFixed(2)}" stroke-dasharray="${(60+r()*160).toFixed(0)} ${(80+r()*260).toFixed(0)}" class="hstreak" style="animation-duration:${d}s;animation-delay:-${(r()*3).toFixed(2)}s"/>`;}
+  let sparks='';for(let i=0;i<40;i++){const x=r()*W,y=r()*H,s=1+r()*3.2;sparks+=`<g class="hspark" style="animation-delay:-${(r()*4).toFixed(2)}s;animation-duration:${(2+r()*3).toFixed(2)}s"><path d="M${x} ${y-s*2.2} L${x+s*.5} ${y-s*.5} L${x+s*2.2} ${y} L${x+s*.5} ${y+s*.5} L${x} ${y+s*2.2} L${x-s*.5} ${y+s*.5} L${x-s*2.2} ${y} L${x-s*.5} ${y-s*.5}Z" fill="${r()<.5?'#fff':(r()<.5?c1:c2)}"/></g>`;}
+  let rays='';for(let i=0;i<18;i++){const a=i/18*Math.PI*2;rays+=`<path d="M${CX} ${CY} L${(CX+Math.cos(a-.05)*900).toFixed(0)} ${(CY+Math.sin(a-.05)*900).toFixed(0)} L${(CX+Math.cos(a+.05)*900).toFixed(0)} ${(CY+Math.sin(a+.05)*900).toFixed(0)}Z" fill="${i%2?c1:c2}" opacity=".07"/>`;}
+  return `<svg class="hbg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMid slice" aria-hidden="true"><defs>
+    <radialGradient id="${P}hg" cx="${CX/W}" cy=".5" r=".75"><stop offset="0" stop-color="${c1}" stop-opacity=".55"/><stop offset=".35" stop-color="${c2}" stop-opacity=".18"/><stop offset="1" stop-color="#060a22" stop-opacity="0"/></radialGradient>
+    <filter id="${P}hb"><feGaussianBlur stdDeviation="2"/></filter></defs>
+    <rect width="${W}" height="${H}" fill="url(#${P}hg)"/>
+    <g class="hrays" style="transform-origin:${CX}px ${CY}px">${rays}</g>
+    <g filter="url(#${P}hb)" opacity=".7">${streaks}</g><g>${streaks.replace(/stroke-width="([\d.]+)"/g,(m,w)=>`stroke-width="${(w*.35).toFixed(1)}"`).replace(/opacity="[\d.]+"/g,'opacity=".9"')}</g>
+    ${sparks}</svg>`;}
+function renderHero(force){const el=document.getElementById('heroBanner');if(!el)return;const p=cur(),s=spOf(p);
+  if(!s){el.innerHTML='';el.hidden=true;heroKey='';return;}el.hidden=false;const v=shown(p);const key=v.n+'|'+p.shiny+'|'+state.active+'|'+(p.nick||'');
+  if(key===heroKey&&!force&&!megaBurst)return;heroKey=key;const P='h'+hash(key);const c1=TC[v.t[0]],c2=TC[v.t[1]||v.t[0]];
+  const isMega=/-Mega/.test(v.n);const bst=v.s.reduce((a,b)=>a+b,0);const ab=(megaIdx(p)>=0&&p.showMega!==false)?v.a[0]:p.ability;
+  const REG={Hisui:'Hisuian',Alola:'Alolan',Galar:'Galarian',Paldea:'Paldean'};const pretty=n=>{const m=n.match(/^(.*)-(Hisui|Alola|Galar|Paldea)$/);return m?REG[m[2]]+' '+m[1]:n;};
+  const nice=isMega?'Mega '+pretty(s.n)+(/-Mega-([XYZ])$/.exec(v.n)?' '+/-Mega-([XYZ])$/.exec(v.n)[1]:''):(p.nick||pretty(s.n));
+  el.style.setProperty('--h1',c1);el.style.setProperty('--h2',c2);
+  el.innerHTML=`${heroBackdrop(v,P)}
+   <div class="hb-emb">${portrait(v,p)}</div>
+   <div class="hb-info"><div class="hb-dex">#${String(s.d).padStart(4,'0')}${isMega?' · <span class="hb-mega">MEGA EVOLUTION</span>':''}${p.shiny?' · <span style="color:var(--moon)">✦ Shiny</span>':''}</div>
+     <h2 class="hb-name">${esc(nice)}</h2>
+     <div class="types">${v.t.map(pill).join('')}</div>
+     <div class="hb-chips"><span>Ability <b>${esc(ab||'—')}</b></span><span>Item <b>${esc(p.item||'None')}</b></span><span>Base stat total <b>${bst}</b></span><span>Base Speed <b>${v.s[5]}</b></span></div>
+   </div>${megaBurst?'<div class="hb-burst"><i></i><i></i><i></i><b></b></div>':''}`;
+  if(megaBurst){megaBurst=false;setTimeout(()=>{const b=el.querySelector('.hb-burst');if(b)b.remove();},1600);}}
 
 /* ---------- boot ---------- */
 if(!state){const r=importText(STARTER);while(r.team.length<6)r.team.push(blank());state={team:r.team,active:0,format:r.format};}
