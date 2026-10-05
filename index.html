@@ -480,6 +480,38 @@ details.mxd>summary{cursor:pointer;color:var(--cyan);font-size:13px;margin:4px 0
 .view-home #btnClear{display:none}
 .ov-title svg{width:70px!important;height:70px!important}
 @media (prefers-reduced-motion:reduce){.slot .mspin{animation:none}}
+
+/* ===== giant gold home button ===== */
+.homebtn{display:none;position:sticky;top:calc(10px + env(safe-area-inset-top,0px));z-index:40;margin:0 auto 18px;width:min(520px,100%);
+  align-items:center;justify-content:center;gap:14px;padding:16px 28px;border-radius:999px;border:2px solid #fff3c9;
+  font:800 26px var(--display);letter-spacing:.02em;color:#3a2600;
+  background:linear-gradient(180deg,#fff3c9 0%,#ffd76a 35%,#e8b33c 70%,#c98f1f 100%);
+  box-shadow:0 0 0 4px rgba(255,215,106,.25),0 10px 30px -6px rgba(255,200,80,.6),inset 0 2px 0 rgba(255,255,255,.7),inset 0 -4px 0 rgba(120,70,0,.3);
+  text-shadow:0 1px 0 rgba(255,255,255,.5);cursor:pointer;overflow:hidden;transition:transform .15s,box-shadow .15s}
+.homebtn::after{content:"";position:absolute;top:-40%;left:-30%;width:30%;height:180%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.6),transparent);transform:rotate(20deg);animation:mvshine 4s ease-in-out infinite}
+.homebtn:hover{transform:translateY(-2px) scale(1.02);box-shadow:0 0 0 5px rgba(255,215,106,.35),0 14px 36px -6px rgba(255,200,80,.75),inset 0 2px 0 rgba(255,255,255,.7),inset 0 -4px 0 rgba(120,70,0,.3);background:linear-gradient(180deg,#fff7da 0%,#ffdd7e 35%,#efbd4a 70%,#d19a28 100%)}
+.homebtn:active{transform:translateY(1px)}
+.hb-ic{font-size:30px;line-height:1}
+.view-mon .homebtn{display:flex}
+@media (prefers-reduced-motion:reduce){.homebtn::after{animation:none;display:none}}
+
+/* ===== move tooltip, editable notes, performance ===== */
+.move .mvinfo{display:none!important}
+.moves{row-gap:12px!important}
+.mt-x{font-size:12px;margin-top:3px}
+.mvtip{position:fixed;z-index:60;background:#0d1240;border:1px solid rgba(255,230,163,.45);border-radius:12px;padding:10px 12px;box-shadow:0 14px 40px rgba(0,0,0,.6);pointer-events:none;font-size:13px}
+.mt-h{display:flex;align-items:center;gap:8px;margin-bottom:4px}.mt-h b{font-family:var(--display);font-size:15px}
+.mt-cat{font-size:11px;color:var(--ink-dim);margin-left:auto}
+.mt-s{font-size:12px;color:var(--ink-dim)}.mt-s b{color:var(--ink)}
+.mt-d{margin:6px 0 4px;line-height:1.45;color:var(--ink)}
+.mt-src{font-size:10.5px;color:var(--ink-faint);letter-spacing:.03em}
+.fn-facts{display:flex;align-items:center;gap:8px;justify-content:space-between}
+.fn-ed{padding:2px 9px;font-size:11px;border-radius:999px;background:#121848;border-color:var(--panel-edge);color:var(--ink-dim);text-transform:none;letter-spacing:0}
+.fn-edit{width:100%;min-height:110px;margin-top:6px;font:12.5px/1.5 var(--body);color:var(--ink);background:var(--field);border:1px solid var(--panel-edge);border-radius:10px;padding:8px}
+.fn-btns{display:flex;gap:6px;margin-top:6px}.fn-btns button{padding:4px 10px;font-size:12px}
+.pf-top{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin-bottom:6px}
+.pf-v{font:800 12px var(--body);letter-spacing:.05em;text-transform:uppercase;border:1.5px solid;border-radius:999px;padding:3px 10px}
+.pf-k{font-size:12.5px;color:var(--ink-dim)}.pf-k b{color:var(--ink)}
 .mustack{flex:1;display:flex;flex-direction:column;gap:12px;min-height:0}
 .mustack .mu{aspect-ratio:auto;flex:1 1 0;min-height:0}
 @media (max-width:1180px){.grid{grid-template-columns:1fr 1fr!important}.center{grid-column:1/-1;order:-1}.mucol{contain:none}.mustack .mu{flex:none}}
@@ -494,6 +526,7 @@ details.mxd>summary{cursor:pointer;color:var(--cyan);font-size:13px;margin:4px 0
 <canvas id="twinkle" aria-hidden="true"></canvas>
 <div class="moon" aria-hidden="true"></div>
 <div class="wrap">
+  <button type="button" id="homeBtn" class="homebtn" aria-label="Back to team home"><span class="hb-ic">⌂</span><span>Home</span></button>
   <header class="top">
     <div>
       <h1>Pokemon Team Analysis</h1>
@@ -549,7 +582,6 @@ details.mxd>summary{cursor:pointer;color:var(--cyan);font-size:13px;margin:4px 0
       </div>
       <h2 class="rose" style="margin-top:6px">Moves</h2>
       <div class="moves" id="moves"></div>
-      <label class="check"><input type="checkbox" id="allMoves"> Show every move, not just ones this Pokémon learns</label>
 
       <h2 id="h-st" style="margin-top:18px">Stats</h2>
       <div class="bst" id="bst"></div>
@@ -563,6 +595,8 @@ details.mxd>summary{cursor:pointer;color:var(--cyan);font-size:13px;margin:4px 0
           <button class="ghost" type="button" id="ivTR">0 Spe IV</button>
         </span>
       </div>
+      <h2 class="mint" style="margin-top:20px">Performance on the team</h2>
+      <div id="perf"></div>
     </section>
     </div>
     <section class="panel full" aria-labelledby="h-ins">
@@ -864,8 +898,20 @@ const NOTES={
  'Rillaboom':'A Grass-type drummer. Grassy Surge covers the field in grass as it enters, powering Grass moves and letting Grassy Glide strike first.'};
 function fieldNotes(v){if(!v)return '';const base=SPECIES[spById.get(id(v.b))]||v;const h=v.h??base.h,w=v.w??base.w;
   const facts=[`${v.t.join('/')} type`,h?`${h} m`:'',w?`${w} kg`:''].filter(Boolean).join(' · ');
-  const note=NOTES[v.n]||'';
-  return `<div class="fn-facts">${esc(facts)}</div>${note?`<p class="fn-note">${esc(note)}</p>`:`<p class="fn-note">Abilities: ${esc(v.a.join(', '))}.</p>`}`;}
+  const custom=NOTE_EDITS[v.n];const note=custom!=null?custom:(NOTES[v.n]||`Abilities: ${v.a.join(', ')}.`);
+  if(noteEditing)return `<div class="fn-facts">${esc(facts)}</div><textarea class="fn-edit" id="fnText" aria-label="Description for ${esc(v.n)}">${esc(note)}</textarea>
+    <div class="fn-btns"><button type="button" id="fnSave">Save</button><button type="button" class="ghost" id="fnCancel">Cancel</button>${custom!=null?'<button type="button" class="ghost" id="fnReset">Reset</button>':''}</div>`;
+  return `<div class="fn-facts">${esc(facts)}<button type="button" class="fn-ed" id="fnEdit" aria-label="Edit description">Edit</button></div><p class="fn-note">${esc(note)}</p>`;}
+let NOTE_EDITS={};try{NOTE_EDITS=JSON.parse(localStorage.getItem('starlight-notes-v1')||'{}')||{};}catch(e){}
+let noteEditing=false;
+function saveNotes(){try{localStorage.setItem('starlight-notes-v1',JSON.stringify(NOTE_EDITS))}catch(e){}if(typeof saveOV==='function')saveOV();}
+document.addEventListener('click',e=>{const t=e.target;if(!t.id)return;const v=shown(cur());if(!v)return;
+  if(t.id==='fnEdit'){noteEditing=true;}
+  else if(t.id==='fnCancel'){noteEditing=false;}
+  else if(t.id==='fnSave'){const val=document.getElementById('fnText').value.trim();if(val)NOTE_EDITS[v.n]=val;else delete NOTE_EDITS[v.n];saveNotes();noteEditing=false;toast('Description saved');}
+  else if(t.id==='fnReset'){delete NOTE_EDITS[v.n];saveNotes();noteEditing=false;toast('Description reset');}
+  else return;
+  document.getElementById('fieldNotes').innerHTML=fieldNotes(v);if(t.id==='fnEdit'){const ta=document.getElementById('fnText');ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length);}});
 
 function portrait(s,p){
   if(!s)return `<svg class="pt" viewBox="0 0 240 240" role="img" aria-label="Empty slot"><circle cx="120" cy="120" r="54" fill="none" stroke="rgba(160,170,255,.3)" stroke-dasharray="4 7"/><text x="120" y="124" text-anchor="middle" font-family="Figtree,sans-serif" font-size="13" fill="rgba(169,176,220,.8)">Choose a Pokémon</text></svg>`;
@@ -962,7 +1008,80 @@ const itItems=ITEMS.map(it=>({v:it[0],k:id(it[0]),h:`<span class="grow">${esc(it
 itItems.unshift({v:'',k:'noitem',h:'<span class="grow"><small>No item</small></span>'});
 /* moves that work differently in Pokémon Champions: [power, accuracy, PP, description] overrides */
 const CHAMP_MOVES={makeitrain:{acc:95,desc:"Lowers the user's Sp. Atk by 2. Hits foe(s)."}};
-const champMove=m=>{if(!m||!isChamp())return m;const o=CHAMP_MOVES[id(m[0])];if(!o)return m;const c=m.slice();if(o.pow!==undefined)c[3]=o.pow;if(o.acc!==undefined)c[4]=o.acc;if(o.pp!==undefined)c[5]=o.pp;if(o.desc)c[6]=o.desc;return c;};
+/* in-game Pokémon Champions move text (Bulbapedia "Champs" row; same wording as the game) */
+const CHAMP_DESC={
+zapcannon:"Paralyzes the target.",
+focusblast:"Has a 10% chance of lowering the target's Sp. Def stat by 1 stage.",
+fakeout:"Makes the target flinch. This move fails unless it is the first move used by the user after it enters a battle.",
+protect:"The user protects itself from incoming moves for the turn. With each consecutive use this move's chance of success becomes 1/3 of what it was before.",
+detect:"The user protects itself from incoming moves for the turn. With each consecutive use this move's chance of success becomes 1/3 of what it was before.",
+nastyplot:"Boosts the user's Sp. Atk stat by 2 stages.",
+makeitrain:"Lowers the user's Sp. Atk stat by 2 stages.",
+shadowball:"Has a 20% chance of lowering the target's Sp. Def stat by 1 stage.",
+flareblitz:"Has a 10% chance of burning the target. Cures the user of being frozen. The user also takes 1/3 of the damage dealt by this move.",
+headsmash:"The user takes 1/2 of the damage dealt by this move.",
+hyperbeam:"The user gains the Recharging status on the turn after this move is used.",
+dracometeor:"Lowers the user's Sp. Atk stat by 2 stages.",
+tailwind:"Gives the user's side the Tailwind status for 4 turns.",
+woodhammer:"The user takes 1/3 of the damage dealt by this move.",
+grassyglide:"If the user is under the effect of Grassy Terrain this move's priority becomes +1.",
+trickroom:"Gives the entire field the Trick Room status for 5 turns.",
+followme:"The user redirects opponents' moves toward itself. This effect works only on single-target moves.",
+ragepowder:"The user redirects opponents' moves toward itself. This effect works only on single-target moves.",
+helpinghand:"Boosts the power of an ally's move by 50% during the turn this move is used.",
+wideguard:"During the turn this move is used the user protects its side from moves that target all allies.",
+icywind:"Lowers targets' Speed stats by 1 stage.",
+electroweb:"Lowers targets' Speed stats by 1 stage.",
+snarl:"Lowers targets' Sp. Atk stats by 1 stage.",
+partingshot:"Lowers the target's Attack and Sp. Atk stats by 1 stage. The user then switches out of battle to be replaced by another party Pokémon.",
+willowisp:"Burns the target.",
+thunderwave:"Paralyzes the target.",
+taunt:"Gives the target the Taunted status.",
+encore:"Gives the target the Encore status.",
+perishsong:"Gives all Pokémon on the field the Perishing status.",
+heatwave:"Has a 10% chance of burning targets.",
+earthquake:"This move's power is doubled against targets that have the Underground status. When Grassy Terrain is active this move's power is halved.",
+rockslide:"Has a 30% chance of making targets flinch.",
+moonblast:"Has a 10% chance of lowering the target's Sp. Atk stat by 1 stage.",
+flamethrower:"Has a 10% chance of burning the target.",
+thunderbolt:"Has a 10% chance of paralyzing the target.",
+icebeam:"Has a 10% chance of freezing the target.",
+knockoff:"This move's power is boosted by 50% if the target is holding an item. Causes the target to lose its held item.",
+suckerpunch:"This move fails unless the target has chosen an attack and has not yet attacked during the turn this move is used.",
+uturn:"After attacking the user switches out of battle to be replaced by another party Pokémon.",
+voltswitch:"After attacking the user switches out of battle to be replaced by another party Pokémon.",
+closecombat:"Lowers the user's Defense and Sp. Def stats by 1 stage.",
+leafstorm:"Lowers the user's Sp. Atk stat by 2 stages.",
+overheat:"Lowers the user's Sp. Atk stat by 2 stages.",
+bodypress:"The damage dealt by this move is calculated using the user's Defense stat instead of its Attack stat.",
+ironhead:"Has a 20% chance of making the target flinch.",
+playrough:"Has a 10% chance of lowering the target's Attack stat by 1 stage.",
+drainpunch:"The user's HP is restored by 1/2 of the damage dealt by this move.",
+expandingforce:"If the user is under the effect of Psychic Terrain this move's power is boosted by 50% and its range extends to all opponents.",
+allyswitch:"The user switches spots with one of its allies. With each consecutive use this move's chance of success becomes 1/3 of what it was before.",
+sludgebomb:"Has a 30% chance of poisoning the target.",
+recover:"Restores 1/2 of the user's max HP.",
+swordsdance:"Boosts the user's Attack stat by 2 stages.",
+dragondance:"Boosts the user's Attack and Speed stats by 1 stage.",
+calmmind:"Boosts the user's Sp. Atk and Sp. Def stats by 1 stage.",
+lightscreen:"Gives the user's side the Light Screen status for 5 turns.",
+reflect:"Gives the user's side the Reflect status for 5 turns.",
+lifedew:"Restores 1/4 of the max HP of the user and its allies.",
+flashcannon:"Has a 10% chance of lowering the target's Sp. Def stat by 1 stage.",
+energyball:"Has a 10% chance of lowering the target's Sp. Def stat by 1 stage.",
+earthpower:"Has a 10% chance of lowering the target's Sp. Def stat by 1 stage.",
+psychic:"Has a 10% chance of lowering the target's Sp. Def stat by 1 stage.",
+darkpulse:"Has a 20% chance of making the target flinch.",
+airslash:"Has a 30% chance of making the target flinch.",
+bravebird:"The user takes 1/3 of the damage dealt by this move.",
+rainDance:"Summons rain for 5 turns.",raindance:"Summons rain for 5 turns.",sunnyday:"Summons harsh sunlight for 5 turns.",
+};
+/* moves the Champions list shows with no extra effect */
+const CHAMP_PLAIN=new Set(['extremespeed','hypervoice','quickattack','highhorsepower','dazzlinggleam','shadowsneak','aquajet','bulletpunch','machpunch','iceshard','accelerock','dragonclaw','dragonpulse','hydropump','powergem','seedbomb','xscissor','petalblizzard','boomburst','drillpeck','vacuumwave','jetpunch','brutalswing','megahorn','powerwhip','aquatail','overdrive','pound']);
+/* Champions PP for moves on this team */
+const CHAMP_PP={zapcannon:8,focusblast:8,fakeout:12,protect:8,nastyplot:20,makeitrain:8,shadowball:16,flareblitz:16,headsmash:8,extremespeed:8,hypervoice:12,hyperbeam:8,quickattack:20,detect:8,dracometeor:8,tailwind:16,woodhammer:16,grassyglide:20,highhorsepower:12};
+function champText(m){const k=id(m[0]);if(CHAMP_DESC[k])return {t:CHAMP_DESC[k],src:'Champions'};if(CHAMP_PLAIN.has(k))return {t:'No additional effect.',src:'Champions'};return {t:m[6]||'',src:'general'};}
+const champMove=m=>{if(!m||!isChamp())return m;const k=id(m[0]);const o=Object.assign({},CHAMP_MOVES[k]||{});if(CHAMP_PP[k]&&o.pp===undefined)o.pp=CHAMP_PP[k];if(CHAMP_DESC[k])o.desc=CHAMP_DESC[k];if(!Object.keys(o).length)return m;const c=m.slice();if(o.pow!==undefined)c[3]=o.pow;if(o.acc!==undefined)c[4]=o.acc;if(o.pp!==undefined)c[5]=o.pp;if(o.desc)c[6]=o.desc;return c;};
 const catName=c=>c==='P'?'Physical':c==='S'?'Special':'Status';
 const mvItem=i=>{const m=champMove(MOVES[i]);return {v:m[0],k:id(m[0])+id(m[1]),h:`<span class="grow">${esc(m[0])}<span class="desc">${esc(m[6])}</span></span>${pill(m[1])}<small style="width:66px;text-align:right">${catName(m[2])} ${m[3]||''}</small>`};};
 let allMoveItems=MOVES.map((m,i)=>mvItem(i));
@@ -973,7 +1092,7 @@ const cbItem=combo(document.getElementById('cbItem'),{placeholder:'Search items'
 const moveCbs=[];const movesEl=document.getElementById('moves');
 for(let k=0;k<4;k++){const w=document.createElement('div');w.className='move';w.innerHTML=`<label class="f" for="mv${k}In">Move ${k+1}</label><div class="mvwrap"><div class="cb" id="mv${k}"></div><div class="mvcard" id="mvc${k}" aria-hidden="true"></div></div><div class="mvinfo" id="mvi${k}"></div>`;movesEl.appendChild(w);
   moveCbs.push(combo(w.querySelector('.cb'),{placeholder:'Search moves',label:()=>cur().moves[k],items:()=>moveList(),pick:v=>{cur().moves[k]=v;commit();}}));}
-let allMoves=false;document.getElementById('allMoves').addEventListener('change',e=>{allMoves=e.target.checked;});
+const allMoves=false;
 function moveList(){const s=spOf(cur());const base=[{v:'',k:'nomove',h:'<span class="grow"><small>No move</small></span>'}];
   if(!s||allMoves||!s.m.length)return base.concat(allMoveItems);return base.concat(s.m.map(i=>allMoveItems[i]));}
 
@@ -1098,7 +1217,7 @@ function render(){const p=cur(),s=spOf(p),v=shown(p),mi=megaIdx(p);
         <span class="mvtags">${conv?`<span class="stab" title="${esc(curAb)} turns Normal moves ${conv}-type with 1.2× power">${esc(curAb)}</span>`:''}${stab?'<span class="stab" title="Same-type attack bonus: 1.5× power">STAB</span>':''}</span>`;
       document.getElementById('mvi'+k).innerHTML=`${conv?`<span style="color:${c}">${esc(curAb)} makes it ${conv}-type.</span> `:''}${(stab||conv)&&m[3]?`<span class="effpow">Effective power ${effp}.</span> `:''}${esc(m[6]||'')}`;}
     else{wrap.style.removeProperty('--mc');wrap.classList.remove('has');card.innerHTML=`<span class="mvempty">＋ Choose move ${k+1}</span>`;document.getElementById('mvi'+k).innerHTML='';}}
-  renderStats();renderOverview();}
+  renderStats();renderOverview();if(typeof renderPerf==='function')renderPerf();}
 
 document.getElementById('btnClear').onclick=()=>{state.team[state.active]=blank();commit();toast('Slot cleared');};
 
@@ -1571,7 +1690,7 @@ function renderFolders(){const el=document.getElementById('folders');const all=m
   if(sel){document.getElementById('renFolder').onclick=()=>{const n=prompt('Rename folder',sel.name);if(!n||!n.trim())return;sel.name=n.trim();saveM();renderInsights();toast('Folder renamed');};
     document.getElementById('delFolder').onclick=()=>{if(!confirm(`Delete “${sel.name}”? Its games stay in your log, just not in a folder.`))return;matches.games.forEach(g=>{if(g.folder===sel.id)g.folder='';});matches.folders=matches.folders.filter(f=>f.id!==sel.id);folderView='all';saveM();renderInsights();toast('Folder deleted');};}}
 function renderInsights(){const el=document.getElementById('insights');document.getElementById('exFlag').hidden=!matches.example||!matches.games.length;
-  if(!Array.isArray(matches.folders))matches.folders=[];renderFolders();renderHeaderChips();renderOverview();backfillKOs();
+  if(!Array.isArray(matches.folders))matches.folders=[];renderFolders();renderHeaderChips();if(typeof VIEW!=='undefined'&&VIEW==='mon'&&typeof renderPerf==='function')renderPerf();renderOverview();backfillKOs();
   const tk=teamKeys();const ALL=matches.games.map((g,i)=>({...g,_i:i,leads:g.leads.map(n=>canon(n,tk)),back:(g.back||[]).map(n=>canon(n,tk)),oppLeads:(g.oppLeads||[]).map(s=>String(s).trim()),oppTeam:g.oppTeam||[]}));
   const G=folderView==='all'?ALL:ALL.filter(g=>(g.folder||'')===(folderView==='__none'?'':folderView));
   if(!ALL.length){el.innerHTML=`<div class="empty-ins">No games logged yet. Choose <b>Upload replays</b> to add Showdown replay files, or load the example data to see how the boxes work.</div>`;return;}
@@ -1660,7 +1779,7 @@ const DEFAULT_OV={"Raichu": ["Mega Raichu Y is an offensive powerhouse with ever
 let OVS={};try{OVS=JSON.parse(localStorage.getItem('starlight-overviews-v1')||'{}')||{};}catch(e){}
 let SAMPLE=null,ovEditing=false,ovBusy=false;
 const ovKey=p=>spOf(p)?spOf(p).n:'';
-function saveOV(){try{localStorage.setItem('starlight-overviews-v1',JSON.stringify(OVS))}catch(e){}if(DB&&UID){clearTimeout(pending.ov);pending.ov=setTimeout(()=>DB.doc(`data/users/${UID}/overviews`).set({items:JSON.parse(JSON.stringify(OVS))}).catch(()=>{}),600);}}
+function saveOV(){try{localStorage.setItem('starlight-overviews-v1',JSON.stringify(OVS))}catch(e){}if(DB&&UID){clearTimeout(pending.ov);pending.ov=setTimeout(()=>DB.doc(`data/users/${UID}/overviews`).set({items:JSON.parse(JSON.stringify(OVS)),notes:JSON.parse(JSON.stringify(NOTE_EDITS))}).catch(()=>{}),600);}}
 /* fallback written from the logged games when nothing has been saved for a species */
 function autoOverview(p,idx,G){const html=scoutParts(p,idx,G);return html;}
 function scoutParts(p,idx,G){const s=spOf(p),nm=s.n;const tk=teamKeys();const br=G.filter(g=>[...g.leads,...g.back].includes(nm));
@@ -1814,14 +1933,71 @@ document.getElementById('ovBody').addEventListener('click',()=>{if(!SCAN.done&&T
 let VIEW='home';
 function setView(v,push){VIEW=v;document.body.classList.toggle('view-home',v==='home');document.body.classList.toggle('view-mon',v==='mon');
   const vb=document.getElementById('viewbar');const p=cur(),s=spOf(p);
-  vb.innerHTML=v==='mon'?`<button type="button" class="ghost" id="goHome">← Back to team home</button><span class="vbt">Viewing <b style="color:${s?TC[shown(p).t[0]]:'var(--ink)'}">${s?esc(p.nick||s.n):'empty slot '+(state.active+1)}</b> · slot ${state.active+1} of 6</span>`
+  vb.innerHTML=v==='mon'?`<span class="vbt">Viewing <b style="color:${s?TC[shown(p).t[0]]:'var(--ink)'}">${s?esc(p.nick||s.n):'empty slot '+(state.active+1)}</b> · slot ${state.active+1} of 6</span>`
     :`<span class="vbt">Team home · pick a Pokémon above to see its stats and overview</span>`;
-  const gh=document.getElementById('goHome');if(gh)gh.onclick=()=>goHome();
-  if(push){const h=v==='mon'?'#pokemon-'+(state.active+1):'#home';if(location.hash!==h)history.pushState(null,'',h);}
+  document.getElementById('homeBtn').onclick=()=>{goHome();window.scrollTo({top:0,behavior:'smooth'});};
+  if(push){const h=v==='mon'?'#pokemon-'+(state.active+1):'#home';/* some embeds (sandboxed previews) block history changes; the views still work without them */try{if(location.hash!==h)history.pushState(null,'',h);}catch(e){}}
   renderTeam();if(v==='mon')scheduleFit();}
-function openMon(i){ovEditing=false;state.active=i;save();setView('mon',true);render();window.scrollTo({top:0,behavior:'smooth'});runScan();}
+function openMon(i){ovEditing=false;noteEditing=false;state.active=i;save();setView('mon',true);render();window.scrollTo({top:0,behavior:'smooth'});runScan();}
 function goHome(){if(!SCAN.done){SCAN.tok++;SCAN.done=true;}setView('home',true);renderInsights();}
-addEventListener('popstate',()=>{const m=location.hash.match(/^#pokemon-(\d)$/);if(m){state.active=+m[1]-1;setView('mon',false);render();runScan();}else setView('home',false);});
+addEventListener('popstate',()=>{let m=null;try{m=location.hash.match(/^#pokemon-(\d)$/);}catch(e){}if(m){state.active=+m[1]-1;setView('mon',false);render();runScan();}else setView('home',false);});
+
+/* ---------- move hover tooltip ---------- */
+const mvTip=document.createElement('div');mvTip.className='mvtip';mvTip.setAttribute('role','tooltip');mvTip.hidden=true;document.body.appendChild(mvTip);
+function showMoveTip(wrap){const k=+wrap.querySelector('.cb').id.replace('mv','');const p=cur();const raw=MOVES[mvById.get(id(p.moves[k]))];if(!raw){mvTip.hidden=true;return;}
+  const m=champMove(raw);const ct=champText(raw);const v=shown(p),mi=megaIdx(p);const curAb=(mi>=0&&p.showMega!==false&&v)?v.a[0]:p.ability;
+  const conv=(m[1]==='Normal'&&m[2]!=='X'&&TYPE_ABIL[curAb])?TYPE_ABIL[curAb]:null;const mt=conv||m[1];const c=TC[mt];
+  const stab=v&&v.t.includes(mt)&&m[2]!=='X';const effp=m[3]?Math.floor(m[3]*(conv?1.2:1)*(stab?1.5:1)):0;
+  mvTip.innerHTML=`<div class="mt-h"><b style="color:${c}">${esc(m[0])}</b>${pill(mt)}<span class="mt-cat">${catName(m[2])}</span></div>
+    ${conv?`<div class="mt-x" style="color:${c}">${esc(curAb)} makes it ${conv}-type with 1.2× power.</div>`:''}
+    ${(stab||conv)&&m[3]?`<div class="mt-x"><span class="effpow">Effective power ${effp}</span>${stab?' (includes 1.5× same-type bonus)':''}</div>`:''}
+    <div class="mt-s">${m[3]?`Power <b>${m[3]}</b> · `:''}Accuracy <b>${m[4]?m[4]+'%':'—'}</b> · PP <b>${m[5]}</b></div>
+    <p class="mt-d">${esc(ct.t)}</p><div class="mt-src">${ct.src==='Champions'?'Pokémon Champions description':'General description (no Champions text on file)'}</div>`;
+  mvTip.hidden=false;const r=wrap.getBoundingClientRect(),tw=Math.min(320,innerWidth-16);mvTip.style.width=tw+'px';
+  const th=mvTip.offsetHeight;let x=r.left+r.width/2-tw/2;x=Math.max(8,Math.min(innerWidth-tw-8,x));let y=r.top-th-10;if(y<8)y=r.bottom+10;
+  mvTip.style.left=x+'px';mvTip.style.top=y+'px';}
+document.getElementById('moves').addEventListener('mouseover',e=>{const w=e.target.closest('.mvwrap');if(w&&w.classList.contains('has')&&!w.contains(document.activeElement))showMoveTip(w);});
+document.getElementById('moves').addEventListener('mouseout',e=>{const w=e.target.closest('.mvwrap');if(w&&!w.contains(e.relatedTarget))mvTip.hidden=true;});
+document.getElementById('moves').addEventListener('focusin',()=>{mvTip.hidden=true;});
+addEventListener('scroll',()=>{mvTip.hidden=true;},{passive:true});
+
+/* ---------- per-Pokémon performance chart ---------- */
+function renderPerf(){const el=document.getElementById('perf');if(!el)return;const p=cur(),s=spOf(p);if(!s){el.innerHTML='';return;}
+  const nm=s.n,label=p.nick||nm,col=TC[shown(p).t[0]];
+  const all=currentGames().slice().sort((a,b)=>gameOrder(a)-gameOrder(b)||(a.game||0)-(b.game||0));
+  if(!all.length){el.innerHTML='<p class="lede">Log some games to see how this Pokémon performs over time.</p>';return;}
+  const pts=[];let w=0,n=0,tw=0;
+  all.forEach((g,i)=>{if(g.win)tw++;const br=[...g.leads,...g.back].includes(nm);if(!br)return;n++;if(g.win)w++;pts.push({i,g,rate:w/n,team:tw/(i+1),led:g.leads.includes(nm),win:g.win});});
+  if(!n){el.innerHTML=`<p class="lede">${esc(label)} hasn't been brought in your logged games${folderView!=='all'?' in this folder':''} yet.</p>`;return;}
+  const teamRate=all.filter(g=>g.win).length/all.length,rate=w/n;
+  const win5=pts.map((q,j)=>{const sl=pts.slice(Math.max(0,j-4),j+1);return sl.filter(x=>x.win).length/sl.length;});
+  const W=640,H=200,L=36,R=10,T=12,B=30,iw=W-L-R,ih=H-T-B;const X=j=>L+(pts.length===1?iw/2:j*iw/(pts.length-1)),Y=v=>T+ih*(1-v);
+  const path=arr=>arr.map((v,j)=>`${j?'L':'M'}${X(j).toFixed(1)} ${Y(v).toFixed(1)}`).join(' ');
+  let grid='';[0,.25,.5,.75,1].forEach(v=>{grid+=`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="rgba(160,170,255,${v===.5?.28:.1})" ${v===.5?'stroke-dasharray="4 4"':''}/><text x="${L-5}" y="${Y(v)+3.5}" text-anchor="end" font-size="9.5" fill="#6f78ad">${v*100}%</text>`;});
+  const area=`${path(pts.map(q=>q.rate))} L${X(pts.length-1)} ${Y(0)} L${X(0)} ${Y(0)}Z`;
+  const dots=pts.map((q,j)=>`<g><circle cx="${X(j).toFixed(1)}" cy="${(T+ih+14).toFixed(1)}" r="${q.led?4.5:3.5}" fill="${q.win?'#8ff0c0':'#ff94c8'}" ${q.led?'stroke="#fff" stroke-width="1.2"':''}/><title>${q.win?'Win':'Loss'} vs ${esc(q.g.opp||'opponent')} G${q.g.game||''} (${esc(q.g.arch||'')})${q.led?', led':', from the back'}</title></g>`).join('');
+  /* trend: first half vs second half */
+  const half=Math.floor(n/2),a1=pts.slice(0,half),a2=pts.slice(half);const r1=a1.length?a1.filter(q=>q.win).length/a1.length:0,r2=a2.filter(q=>q.win).length/a2.length;
+  const ld=pts.filter(q=>q.led),bk=pts.filter(q=>!q.led);const rec=arr=>`${arr.filter(q=>q.win).length}–${arr.filter(q=>!q.win).length}`;
+  const diff=rate-teamRate;let verdict,vc;
+  if(n<5){verdict='Too early to judge';vc='var(--ink-dim)';}
+  else if(diff>=.05&&r2>=r1-.1){verdict='Good fit';vc='var(--mint)';}
+  else if(diff<=-.1||r2<r1-.2){verdict='Worth reviewing';vc='#ff7b8a';}
+  else{verdict='Pulling its weight';vc='var(--cyan)';}
+  const trendTxt=n<6?'':r2>r1+.1?` Its results are improving (${pct(r1)} in its first ${a1.length} games, ${pct(r2)} since).`:r2<r1-.1?` Its results are slipping (${pct(r1)} in its first ${a1.length} games, ${pct(r2)} since).`:` Its results have been steady.`;
+  el.innerHTML=`<div class="pf-top"><span class="pf-v" style="color:${vc};border-color:${vc}">${verdict}</span>
+     <span class="pf-k"><b style="color:${col}">${w}–${n-w}</b> when brought (${pct(rate)})</span><span class="pf-k">Team overall <b>${pct(teamRate)}</b></span>
+     <span class="pf-k">Led <b>${rec(ld)}</b> · From the back <b>${rec(bk)}</b></span><span class="pf-k">Brought <b>${n}</b> of ${all.length}</span></div>
+   <p class="lede">${esc(label)} is ${Math.abs(diff)<.03?'right at':diff>0?`${Math.round(diff*100)} points above`:`${Math.round(-diff*100)} points below`} the team's overall win rate when it's brought.${trendTxt}</p>
+   <div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(label)} win rate over time">
+    <defs><linearGradient id="pfg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".35"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></linearGradient></defs>
+    ${grid}<path d="${area}" fill="url(#pfg)"/>
+    <path d="${path(pts.map(q=>q.team))}" fill="none" stroke="#ffe6a3" stroke-width="1.5" stroke-dasharray="5 4" opacity=".85"/>
+    <path d="${path(win5)}" fill="none" stroke="#fff" stroke-width="1.2" opacity=".45"/>
+    <path d="${path(pts.map(q=>q.rate))}" fill="none" stroke="${col}" stroke-width="2.6" stroke-linejoin="round"/>
+    ${pts.map((q,j)=>`<circle cx="${X(j).toFixed(1)}" cy="${Y(q.rate).toFixed(1)}" r="2.4" fill="${col}"/>`).join('')}${dots}</svg></div>
+   <div class="legend"><span><i style="background:${col}"></i>${esc(label)}'s win rate to date</span><span><i style="background:#fff;opacity:.6"></i>Its last 5 games</span><span><i style="background:#ffe6a3"></i>Team overall at the same point</span><span>Dots: each game it was brought, ringed if it led</span></div>
+   ${chartNote(n,'This read')}`;}
 
 /* ---------- boot ---------- */
 if(!state){const r=importText(STARTER);while(r.team.length<6)r.team.push(blank());state={team:r.team,active:0,format:r.format};}
@@ -1834,7 +2010,7 @@ render();renderInsights();
 (async()=>{try{if(window.claude&&window.claude.use)window.claude.use('sample').then(f=>{SAMPLE=f;renderOverview();}).catch(()=>{});}catch(e){}})();
 (async()=>{try{if(!window.claude||!window.claude.use)return;const [db,user]=await Promise.all([window.claude.use('db'),window.claude.use('user')]);if(!db||!user)return;
   const uid=await user.id();if(!uid)return;DB=db;UID=uid;window.claude.use('assets').then(x=>{ASSETS=x;renderInsights();}).catch(()=>{});
-  db.doc(`data/users/${uid}/overviews`).get().then(o=>{if(o.exists){const d=JSON.parse(JSON.stringify(o.data()));if(d.items){OVS=d.items;renderOverview();}}}).catch(()=>{});
+  db.doc(`data/users/${uid}/overviews`).get().then(o=>{if(o.exists){const d=JSON.parse(JSON.stringify(o.data()));if(d.items){OVS=d.items;renderOverview();}if(d.notes){NOTE_EDITS=d.notes;lastPortrait='';renderPortrait();}}}).catch(()=>{});
   const b=await db.doc(`data/users/${uid}/builder`).get();
   if(b.exists){const d=JSON.parse(JSON.stringify(b.data()));if(Array.isArray(d.team)&&d.team.length===6){state={team:d.team,active:d.active||0,format:d.format||'champions'};allMoveItems=MOVES.map((m,i)=>mvItem(i));lastPortrait='';render();}}else saveRemote('builder');
   const m=await db.doc(`data/users/${uid}/matches`).get();
