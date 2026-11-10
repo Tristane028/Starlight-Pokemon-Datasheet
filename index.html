@@ -1021,30 +1021,12 @@ main.grid.vt-in>*:nth-child(2){animation-delay:.05s}main.grid.vt-in>*:nth-child(
 .mgrid .overview .ov-head{padding:6px 2px 6px;margin:0}
 .mgrid .overview .ov-head h2{font-size:16px}
 .mgrid .overview #ovBody{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:4px 8px 30px 2px;scrollbar-width:thin;scrollbar-color:rgba(160,170,255,.35) transparent;-webkit-mask-image:linear-gradient(#000 calc(100% - 30px),transparent);mask-image:linear-gradient(#000 calc(100% - 30px),transparent)}
-.mC #cellMon{flex:none}
-.mC #cellMon .mc-b{overflow:visible;padding-bottom:4px;-webkit-mask-image:none;mask-image:none}
-.mC .hero{margin:0;gap:8px}
-.mC .hero>div:nth-child(2){display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:3px 12px;align-items:end}
-.mC .hero>div:nth-child(2)>label.f{grid-column:1;grid-row:1}
-.mC .hero>div:nth-child(2)>#cbSpecies{grid-column:1;grid-row:2}
-.mC .hero .row{display:contents}
-.mC .hero .row>div:nth-child(1){grid-column:2;grid-row:1/span 2}
-.mC .hero .row>div:nth-child(2){grid-column:1;grid-row:3;margin-top:5px}
-.mC .hero .row>div:nth-child(3){grid-column:2;grid-row:3;margin-top:5px}
-.mC .hero .types,.mC .hero .megabar,.mC .hero .shinyck{margin:6px 0 0;align-self:center}
-.mC .hero .meta{display:none}
-.mC .hero label.f{font-size:11.5px;margin-bottom:3px}
-.mC .hero select,.mC .hero .cb input{padding:6px 10px;font-size:13px}
-.mC .hero select{padding-right:26px}
-.mC .fieldnotes{font-size:12px}
-.mC #levelRow{margin:6px 0 0}
 @media (min-width:1100px) and (min-height:560px){
   .mgrid{grid-template-columns:minmax(0,1.1fr) minmax(0,.95fr) minmax(0,1fr)}
   .mgrid .hb-emb{min-height:min(26vh,220px)}
 }
 @media (min-width:1100px) and (min-height:560px) and (max-height:760px){
-  .mC .fieldnotes{display:none}
-  .mC #cellMon .mc-h{padding:2px 2px 4px}
+  .mL .fieldnotes{display:none}
   .mgrid .hb-emb{min-height:min(20vh,150px)}
 }
 /* monospace type runs wider: tighten the places that were sized for the old faces */
@@ -1063,6 +1045,102 @@ body{font-size:13.5px;letter-spacing:-.01em}
 .mgrid .mL{order:1}.mgrid .mR{order:2}
 @media (min-width:1100px) and (min-height:560px){.mgrid .mL,.mgrid .mR{order:0}}
 @media not ((min-width:1100px) and (min-height:560px)){.mgrid .overview #ovBody{max-height:70vh}}
+/* scenes behind the emblem */
+.mgrid .herob .hbg.hfx{-webkit-mask-image:linear-gradient(transparent,#000 7%,#000 88%,transparent),linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);-webkit-mask-composite:source-in;mask-image:linear-gradient(transparent,#000 7%,#000 88%,transparent),linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask-composite:intersect}
+.fx-flash{opacity:0}
+@media (prefers-reduced-motion:no-preference){
+  @keyframes fxBolt{0%,100%{opacity:0}2%{opacity:1}4%{opacity:.25}6%{opacity:1}11%{opacity:.7}16%{opacity:0}}
+  @keyframes fxFlash{0%,100%{opacity:0}1.5%{opacity:.16}4%{opacity:0}47%{opacity:0}48.5%{opacity:.1}51%{opacity:0}}
+  @keyframes fxFall{from{transform:translateY(-40px)}to{transform:translateY(610px)}}
+  @keyframes fxFlip{from{transform:scaleX(1) rotate(-14deg)}to{transform:scaleX(.12) rotate(14deg)}}
+  @keyframes fxFlame{0%,100%{transform:scale(1,1) skewX(0)}30%{transform:scale(.92,1.14) skewX(-4deg)}65%{transform:scale(1.06,.86) skewX(5deg)}}
+  @keyframes fxRise{0%{transform:translate(0,0);opacity:0}8%{opacity:1}70%{opacity:.9}100%{transform:translate(var(--sx,0),-540px);opacity:0}}
+  @keyframes fxTwk{0%,100%{transform:scale(0) rotate(0);opacity:0}45%,55%{transform:scale(1) rotate(45deg);opacity:1}}
+  @keyframes fxDot{0%,100%{opacity:0}50%{opacity:.9}}
+  @keyframes fxGust{from{stroke-dashoffset:100}to{stroke-dashoffset:0}}
+  @keyframes fxSway{from{transform:translateX(-22px)}to{transform:translateX(22px)}}
+  @keyframes fxTurn{from{transform:rotate(-50deg)}to{transform:rotate(70deg)}}
+  .fx-bolt{opacity:0;animation:fxBolt linear infinite}
+  .fx-flash{animation:fxFlash 3.4s linear infinite}
+  .fx-fall{animation:fxFall linear infinite}
+  .fx-flip{animation:fxFlip ease-in-out infinite alternate}
+  .fx-flame{animation:fxFlame ease-in-out infinite}
+  .fx-rise{animation:fxRise ease-out infinite}
+  .fx-twk{animation:fxTwk ease-in-out infinite}
+  .fx-dot{animation:fxDot ease-in-out infinite}
+  .fx-gust{animation:fxGust linear infinite}
+  .fx-sway{animation:fxSway ease-in-out infinite alternate}
+  .fx-turn{animation:fxTurn ease-in-out infinite alternate}
+}
+@media (prefers-reduced-motion:reduce){.fx-bolt:nth-child(n+5){display:none}}
+/* Pokémon section on the left, above stats and moves; stats use two inner columns */
+.mL #cellMon{flex:none}
+.mL #cellMon .mc-b{overflow:visible;padding-bottom:2px;-webkit-mask-image:none;mask-image:none}
+.mL .hero{margin:0;gap:6px}
+.mL .hero>div:nth-child(2){display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px 10px;align-items:end}
+.mL .hero>div:nth-child(2)>label.f{grid-column:1;grid-row:1}
+.mL .hero>div:nth-child(2)>#cbSpecies{grid-column:1;grid-row:2}
+.mL .hero .row{display:contents}
+.mL .hero .row>div:nth-child(1){grid-column:2;grid-row:1/span 2}
+.mL .hero .row>div:nth-child(2){grid-column:3;grid-row:1/span 2}
+.mL .hero .row>div:nth-child(3){grid-column:4;grid-row:1/span 2}
+.mL .hero .types,.mL .hero .megabar,.mL .hero .shinyck{margin:6px 0 0;align-self:center}
+.mL .hero .megabar{grid-column:span 2}
+.mL .hero .meta{display:none}
+.mL .hero label.f{font-size:11px;margin-bottom:3px}
+.mL .hero select,.mL .hero .cb input{padding:6px 9px;font-size:12px;letter-spacing:-.03em}
+.mL .hero select{padding-right:22px;background-position:calc(100% - 12px) 55%,calc(100% - 7px) 55%}
+.mL .fieldnotes{font-size:11.5px}
+.mL .fieldnotes .fn-note{margin:2px 0 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.mL #levelRow{margin:6px 0 0}
+@media (min-width:1100px) and (min-height:560px){
+  .mgrid{grid-template-columns:minmax(0,1.3fr) minmax(0,.84fr) minmax(0,1.3fr)}
+  .mgrid .hb-emb{min-height:min(34vh,260px)}
+  .mdock{flex-wrap:wrap}
+  #cellMon{min-height:0}
+  #cellStats .mc-b{display:grid;grid-template-columns:minmax(0,.82fr) minmax(0,1fr);grid-template-rows:auto auto auto auto;column-gap:16px;align-content:start;
+    grid-template-areas:"moves bst" "moves stats" "spd stats" "spd ev"}
+  #cellStats .moves{grid-area:moves;grid-template-columns:1fr!important;gap:7px!important;margin:0 0 8px;align-self:start}
+  #cellStats .bst{grid-area:bst}
+  #cellStats .statwrap{grid-area:spd;align-self:start;margin:0}
+  #cellStats #stats{grid-area:stats}
+  #cellStats .evsum{grid-area:ev}
+  #cellStats .spd{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .mgrid #cellStats .stat{grid-template-columns:32px 26px minmax(0,1fr) 42px;gap:2px 8px;padding:4px 0}
+  .mgrid #cellStats .stat .sl{grid-column:2/5;grid-row:2;grid-template-columns:20px minmax(0,1fr) 46px}
+  .mgrid #cellStats .stat .sl.ivrow{grid-row:3}
+  .mgrid .mstrip{zoom:.78}
+}
+
+@media (min-width:1100px) and (min-height:560px){
+  #cellStats .bst{display:none}
+  #cellStats .mc-b{grid-template-areas:"moves stats" "moves stats" "spd stats" "spd ev"}
+  .mgrid #cellStats .stat{padding:2px 0;gap:0 8px}
+  #cellStats .evsum{margin-top:4px;flex-wrap:nowrap;font-size:12px}
+  #cellStats .spdbox h4{margin:2px 0 4px}
+  #cellStats .spdbox .bulk{font-size:10.5px;margin-top:4px}
+  .mgrid .move .cb input{padding:7px 14px}
+  .mL #cellMon .mc-h{padding-bottom:4px}
+  .mL .fieldnotes .fn-facts{font-size:10.5px}
+  .mgrid .mcol.mL{gap:calc(var(--g) * .6)}
+}
+@media (min-width:1100px) and (min-height:560px){
+  .mgrid .move .cb input{height:46px}
+  .mgrid .mvbadge{width:32px;height:32px}
+  .mgrid .mvcard{grid-template-columns:34px minmax(0,1fr) auto}
+  .mgrid #perf .chart svg{max-height:112px}
+  .mgrid #perf .pf-top{margin-bottom:3px}
+  .mgrid #perf .lede{margin-bottom:4px}
+  #cellPerf{flex:1 1 240px}
+}
+@media (min-width:1100px) and (min-height:560px) and (max-height:1000px){
+  .mL .fieldnotes{display:none}
+}
+@media (min-width:1100px) and (min-height:560px){
+  #cellStats .evsum{font-size:11px;letter-spacing:-.03em;gap:6px}
+  #cellStats .evsum>span:first-child{white-space:nowrap}
+  #cellStats .evsum button{white-space:nowrap;padding:4px 8px;font-size:11px}
+}
 </style>
 </head>
 <body>
@@ -1096,30 +1174,6 @@ body{font-size:13.5px;letter-spacing:-.01em}
   <main class="grid">
     <div class="mgrid" id="monGrid">
       <div class="center mcol mL">
-        <section class="panel mcell" id="cellStats" aria-labelledby="h-st" style="--bc:var(--cyan)">
-          <div class="mc-h"><span class="dp-em" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h8M18 7h2M4 12h2M10 12h10M4 17h10M18.5 17H20"/><circle cx="15" cy="7" r="2.2"/><circle cx="8" cy="12" r="2.2"/><circle cx="16.3" cy="17" r="2.2"/></svg></span><h2 id="h-st">Stats and moves</h2></div>
-          <div class="mc-b">
-      <div class="moves" id="moves"></div>
-      <div class="bst" id="bst"></div>
-      <div class="statwrap"><div class="radar" id="radar"></div><div class="spdbox" id="spdbox"></div></div>
-      <div id="stats"></div>
-      <div class="evsum">
-        <span><span id="evLbl">EVs</span> used: <b id="evUsed">0</b> / <span id="evCap">510</span></span>
-        <span style="display:flex;gap:6px;flex-wrap:wrap">
-          <button class="ghost" type="button" id="evReset">Reset spread</button>
-          <button class="ghost" type="button" id="ivMax">IVs 31</button>
-          <button class="ghost" type="button" id="ivTR">0 Spe IV</button>
-        </span>
-      </div>
-          </div>
-        </section>
-        <section class="panel mcell" id="cellPerf" aria-labelledby="h-pf" style="--bc:var(--mint)">
-          <div class="mc-h"><span class="dp-em" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17.5l5.5-6.5 4 3.2L20 5.5"/><path d="M15 5.5h5v5"/><path d="M3 21h18" opacity=".5"/></svg></span><h2 id="h-pf" class="mint">Performance</h2></div>
-          <div class="mc-b"><div id="perf"></div></div>
-        </section>
-      </div>
-      <div class="mcol mC">
-        <section class="herob" id="heroBanner" aria-label="Pokémon title and emblem" hidden></section>
         <section class="panel mcell" id="cellMon" aria-labelledby="h-id" style="--bc:var(--moon)">
           <div class="mc-h"><span class="dp-em" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="14" rx="2.5"/><circle cx="9" cy="10.8" r="2.1"/><path d="M5.9 16c.7-1.5 1.8-2.2 3.1-2.2s2.4.7 3.1 2.2M14.6 10h3.2M14.6 13.5h3.2"/></svg></span><h2 id="h-id" class="gold">Pokémon</h2><button id="btnClear" class="warn">Clear slot</button></div>
           <div class="mc-b">
@@ -1151,6 +1205,30 @@ body{font-size:13.5px;letter-spacing:-.01em}
       </div>
           </div>
         </section>
+        <section class="panel mcell" id="cellStats" aria-labelledby="h-st" style="--bc:var(--cyan)">
+          <div class="mc-h"><span class="dp-em" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h8M18 7h2M4 12h2M10 12h10M4 17h10M18.5 17H20"/><circle cx="15" cy="7" r="2.2"/><circle cx="8" cy="12" r="2.2"/><circle cx="16.3" cy="17" r="2.2"/></svg></span><h2 id="h-st">Stats and moves</h2></div>
+          <div class="mc-b">
+      <div class="moves" id="moves"></div>
+      <div class="bst" id="bst"></div>
+      <div class="statwrap"><div class="radar" id="radar"></div><div class="spdbox" id="spdbox"></div></div>
+      <div id="stats"></div>
+      <div class="evsum">
+        <span><span id="evLbl">EVs</span> used: <b id="evUsed">0</b> / <span id="evCap">510</span></span>
+        <span style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="ghost" type="button" id="evReset">Reset spread</button>
+          <button class="ghost" type="button" id="ivMax">IVs 31</button>
+          <button class="ghost" type="button" id="ivTR">0 Spe IV</button>
+        </span>
+      </div>
+          </div>
+        </section>
+        <section class="panel mcell" id="cellPerf" aria-labelledby="h-pf" style="--bc:var(--mint)">
+          <div class="mc-h"><span class="dp-em" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17.5l5.5-6.5 4 3.2L20 5.5"/><path d="M15 5.5h5v5"/><path d="M3 21h18" opacity=".5"/></svg></span><h2 id="h-pf" class="mint">Performance</h2></div>
+          <div class="mc-b"><div id="perf"></div></div>
+        </section>
+      </div>
+      <div class="mcol mC">
+        <section class="herob" id="heroBanner" aria-label="Pokémon title and emblem" hidden></section>
         <div class="mdock">
           <button type="button" id="homeBtn" class="homebtn" aria-label="Back to team home"><span class="hb-ic">⌂</span><span>Home</span></button>
           <nav class="mswitch" id="monSwitch" aria-label="Switch Pokémon"></nav>
@@ -2692,6 +2770,41 @@ function heroName(el,name){const tok=++HERO_TOK;const nm=el.querySelector('.hb-n
   paint(0);requestAnimationFrame(step);
   setTimeout(()=>{if(tok===HERO_TOK&&ja&&ja.isConnected)ja.classList.add('on');},3000);}
 
+/* ---------- scene behind the emblem: one per type, with a couple of species of their own ---------- */
+function heroFx(v,s,P){const t1=v.t[0],c1=TC[t1],c2=TC[v.t[1]||t1];const r=mul(hash(v.n+'fx'));const R=(a,b)=>a+r()*(b-a);const W=400,H=560;
+  const kind=s.n==='Gholdengo'?'coins':(s.n==='Salamence'||t1==='Flying')?'wind':({Electric:'bolt',Fire:'fire',Fairy:'sparkle',Grass:'leaf'})[t1];if(!kind)return '';
+  const f=x=>x.toFixed(1);let o='',defs=`<filter id="${P}fb" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3"/></filter><radialGradient id="${P}fg" cx="50%" cy="55%" r="60%"><stop offset="0" stop-color="${c1}" stop-opacity=".22"/><stop offset="1" stop-color="#060a22" stop-opacity="0"/></radialGradient>`;
+  o+=`<rect width="${W}" height="${H}" fill="url(#${P}fg)"/>`;
+  if(kind==='bolt'){/* thunder raining down: jagged bolts that flash in turn */
+    for(let i=0;i<15;i++){let x=R(20,380),y=-10,d=`M${f(x)} ${y}`,br='';while(y<H+10){y+=R(34,72);x+=R(-30,30);d+=` L${f(x)} ${f(y)}`;if(r()<.22){const bx=x+R(-60,60),by=y+R(40,90);br+=`M${f(x)} ${f(y)} L${f((x+bx)/2+R(-10,10))} ${f((y+by)/2)} L${f(bx)} ${f(by)}`;}}
+      const st=`animation-duration:${f(R(2.4,4.6))}s;animation-delay:-${f(R(0,4.6))}s`;const w=R(1.6,3.6);
+      o+=`<g class="fx-bolt" style="${st}"><path d="${d}${br}" fill="none" stroke="${c1}" stroke-width="${f(w*3)}" stroke-linejoin="round" opacity=".55" filter="url(#${P}fb)"/><path d="${d}${br}" fill="none" stroke="#fffbe0" stroke-width="${f(w)}" stroke-linejoin="round" stroke-linecap="round"/></g>`;}
+    o+=`<rect class="fx-flash" width="${W}" height="${H}" fill="${c1}"/>`;}
+  else if(kind==='coins'){/* gold coins tumbling down */
+    for(let i=0;i<42;i++){const x=R(14,386),rad=R(6,13),dur=R(2.8,6),dl=R(0,6);
+      o+=`<g transform="translate(${f(x)} 0)"><g class="fx-fall" style="animation-duration:${f(dur)}s;animation-delay:-${f(dl)}s"><g class="fx-flip" style="animation-duration:${f(R(.7,1.5))}s;animation-delay:-${f(R(0,1.5))}s"><circle r="${f(rad)}" fill="#ffd45e" stroke="#a8750c" stroke-width="1.4"/><circle r="${f(rad*.66)}" fill="none" stroke="#fff3b8" stroke-width="1.1" opacity=".9"/><path d="M0 ${f(-rad*.36)}V${f(rad*.36)}" stroke="#a8750c" stroke-width="1.6" stroke-linecap="round"/></g></g></g>`;}}
+  else if(kind==='fire'){/* a fire on the ground, sparks climbing to the sky */
+    defs+=`<linearGradient id="${P}ff" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#fff2a8"/><stop offset=".35" stop-color="#ffb347"/><stop offset=".8" stop-color="${c1}"/><stop offset="1" stop-color="${c1}" stop-opacity="0"/></linearGradient>`;
+    o+=`<ellipse cx="200" cy="${H+10}" rx="230" ry="90" fill="${c1}" opacity=".5" filter="url(#${P}fb)"/>`;
+    for(let L=0;L<2;L++)for(let i=0;i<13;i++){const x=i*34-4+R(-10,10),w=R(26,44),h=(L?R(70,130):R(110,200));
+      o+=`<path class="fx-flame" style="transform-origin:${f(x)}px ${H}px;animation-duration:${f(R(.7,1.5))}s;animation-delay:-${f(R(0,1.5))}s" d="M${f(x-w/2)} ${H} C${f(x-w/2)} ${f(H-h*.45)} ${f(x-w*.12)} ${f(H-h*.55)} ${f(x+R(-6,6))} ${f(H-h)} C${f(x+w*.2)} ${f(H-h*.55)} ${f(x+w/2)} ${f(H-h*.4)} ${f(x+w/2)} ${H}Z" fill="${L?'#ffd27a':`url(#${P}ff)`}" opacity="${L?.55:.85}"/>`;}
+    for(let i=0;i<34;i++){const x=R(10,390);o+=`<g transform="translate(${f(x)} ${H-30})"><g class="fx-rise" style="animation-duration:${f(R(2.6,6))}s;animation-delay:-${f(R(0,6))}s;--sx:${f(R(-40,40))}px"><circle r="${f(R(1.2,3))}" fill="${r()<.5?'#ffe08a':'#ffb347'}"/></g></g>`;}}
+  else if(kind==='sparkle'){/* sparkles glistening in and out of sight */
+    const star='M0 -10 C1.2 -3 3 -1.2 10 0 C3 1.2 1.2 3 0 10 C-1.2 3 -3 1.2 -10 0 C-3 -1.2 -1.2 -3 0 -10Z';
+    for(let i=0;i<54;i++){const x=R(8,392),y=R(8,552),sc=R(.35,1.5),col=['#ff9bd2','#ffd1ec','#ffffff',c1][Math.floor(r()*4)];
+      o+=`<g transform="translate(${f(x)} ${f(y)}) scale(${f(sc)})"><path class="fx-twk" style="animation-duration:${f(R(1.6,4.2))}s;animation-delay:-${f(R(0,4.2))}s" d="${star}" fill="${col}"/></g>`;}
+    for(let i=0;i<40;i++)o+=`<circle class="fx-dot" style="animation-duration:${f(R(1.4,3.6))}s;animation-delay:-${f(R(0,3.6))}s" cx="${f(R(4,396))}" cy="${f(R(4,556))}" r="${f(R(.8,2))}" fill="#ffd1ec"/>`;}
+  else if(kind==='wind'){/* a gust driving down from above, fanning out along the ground */
+    for(let i=0;i<38;i++){const side=i%2?1:-1,x0=200+side*R(4,120),ey=R(H-110,H-12),ex=side>0?W+60:-60,k=R(.5,.8);
+      const d=`M${f(x0)} -30 C${f(x0+side*R(0,14))} ${f(ey*k)} ${f(x0+side*R(10,50))} ${f(ey)} ${f(ex)} ${f(ey+R(-16,10))}`;const w=R(1.6,5.2),col=r()<.35?'#ffffff':r()<.5?c1:c2;
+      o+=`<path class="fx-gust" pathLength="100" d="${d}" fill="none" stroke="${col}" stroke-width="${f(w)}" stroke-linecap="round" opacity="${f(R(.45,.95))}" stroke-dasharray="${f(R(12,30))} ${f(R(26,60))}" style="animation-duration:${f(R(1.1,2.6))}s;animation-delay:-${f(R(0,2.6))}s"/>`;}
+    o+=`<ellipse cx="200" cy="${H-30}" rx="210" ry="38" fill="${c1}" opacity=".16" filter="url(#${P}fb)"/>`;}
+  else if(kind==='leaf'){/* leaves drifting down */
+    const leaf='M0 -11 C7 -8 9 2 0 11 C-9 2 -7 -8 0 -11Z';
+    for(let i=0;i<26;i++){const x=R(14,386),sc=R(.7,1.7),col=['#78c850','#9be36b','#4f9a3a',c1][Math.floor(r()*4)];
+      o+=`<g transform="translate(${f(x)} 0)"><g class="fx-fall" style="animation-duration:${f(R(5,10))}s;animation-delay:-${f(R(0,10))}s"><g class="fx-sway" style="animation-duration:${f(R(1.8,3.4))}s;animation-delay:-${f(R(0,3.4))}s"><g class="fx-turn" style="animation-duration:${f(R(2.4,5))}s;animation-delay:-${f(R(0,5))}s"><g transform="scale(${f(sc)})"><path d="${leaf}" fill="${col}"/><path d="M0 -9V10" stroke="rgba(6,10,34,.45)" stroke-width="1"/></g></g></g></g></g>`;}}
+  return `<svg class="hbg hfx" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs>${defs}</defs>${o}</svg>`;}
+
 /* ---------- home view vs single-Pokémon view ---------- */
 let VIEW='home';
 function setView(v,push){VIEW=v;ovPop(false);document.body.classList.toggle('view-home',v==='home');document.body.classList.toggle('view-mon',v==='mon');
@@ -2789,7 +2902,7 @@ function renderHero(force){const el=document.getElementById('heroBanner');if(!el
   const REG={Hisui:'Hisuian',Alola:'Alolan',Galar:'Galarian',Paldea:'Paldean'};const pretty=n=>{const m=n.match(/^(.*)-(Hisui|Alola|Galar|Paldea)$/);return m?REG[m[2]]+' '+m[1]:n;};
   const nice=isMega?'Mega '+pretty(s.n)+(/-Mega-([XYZ])$/.exec(v.n)?' '+/-Mega-([XYZ])$/.exec(v.n)[1]:''):(p.nick||pretty(s.n));
   el.style.setProperty('--h1',c1);el.style.setProperty('--h2',c2);
-  el.innerHTML=`${heroBackdrop(v,P)}
+  el.innerHTML=`${heroFx(v,s,P)||heroBackdrop(v,P)}
    <div class="hb-emb">${portrait(v,p)}</div>
    <div class="hb-info"><div class="hb-dex">#${String(s.d).padStart(4,'0')}${isMega?' · <span class="hb-mega">MEGA EVOLUTION</span>':''}${p.shiny?' · <span style="color:var(--moon)">✦ Shiny</span>':''}</div>
      <h2 class="hb-name" aria-label="${esc(nice)}"><span class="hb-nm" aria-hidden="true">${esc(nice)}</span>${JA_NAMES[s.d]&&JA_NAMES[s.d][0]?`<span class="hb-ja" lang="ja" title="${esc(JA_NAMES[s.d][1])}">(${esc(JA_NAMES[s.d][0])})</span>`:''}</h2>
