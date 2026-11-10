@@ -731,6 +731,24 @@ main.grid.vt-in>*:nth-child(2){animation-delay:.05s}main.grid.vt-in>*:nth-child(
   .mi-leg b{font-size:14px}
   .dp-h{padding-top:9px;padding-bottom:5px}
 }
+
+/* second pass: merged picks cell, game log cell, nothing below the dashboard */
+.view-home main.grid{display:none!important}
+.dr.slim{padding:4px 0}
+.dsub{margin:6px 0 1px;font:800 10.5px var(--body);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint)}
+.dsub:first-child{margin-top:0}
+.dsub+.dr{border-top:0}
+.dlog{display:flex;align-items:baseline;justify-content:space-between;gap:8px;width:100%;padding:5px 6px;margin:0 -6px;width:calc(100% + 12px);text-align:left;background:none;border:0;border-top:1px solid rgba(160,170,255,.1);border-radius:0;font-weight:500;color:var(--ink)}
+.dlog:first-child{border-top:0}
+.dlog:hover{background:rgba(127,220,255,.08)}
+.dlog-n{flex:1;min-width:0;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dlog-n small{margin-left:6px;font-size:11px;color:var(--ink-faint)}
+.dlog-r{flex:none;font:800 12.5px var(--display);white-space:nowrap}
+.xov-c .box+.box{margin-top:14px;padding-top:14px;border-top:1px solid rgba(160,170,255,.18)!important;border-radius:0}
+@media (min-width:1100px) and (min-height:560px){
+  html:has(body.view-home){overflow:hidden}
+  .view-home .wrap{padding-bottom:0}
+}
 </style>
 </head>
 <body>
@@ -1983,7 +2001,8 @@ function renderInsights(){const el=document.getElementById('insights');document.
    <nav class="jump" id="jumpNav" aria-label="Jump to a section">${INSIGHTS.filter(s=>!s.when||s.when()).map(s=>`<button type="button" data-jump="ins-${s.id}" style="--bc:${s.color}">${s.title.replace(/^(Win rate over time|Usage and win rate by Pokémon|Opposing Pokémon behind your losses|Biggest threats to your team|Leads that win most|Best four-Pokémon brings|Who wins into which archetypes|Game log|Team comparison)$/,m=>({'Win rate over time':'Trend','Usage and win rate by Pokémon':'Usage','Opposing Pokémon behind your losses':'Loss drivers','Biggest threats to your team':'Threats','Leads that win most':'Leads','Best four-Pokémon brings':'Fours','Who wins into which archetypes':'Archetypes','Game log':'Game log','Team comparison':'Compare'})[m])}</button>`).join('')}</nav>
    <div class="ins-grid">${INSIGHTS.filter(s=>!s.when||s.when()).map(s=>`<div class="box${s.wide?' wide':''}" id="ins-${s.id}" style="--bc:${s.color}"><h3 style="color:${s.color}">${s.title}<button type="button" class="totop" data-jump="jumpNav" aria-label="Back to section links">↑</button></h3>${s.render(G,ctx)}</div>`).join('')}</div>`;
   document.getElementById('minG').oninput=e=>{minGames=+e.target.value;renderInsights();document.getElementById('minG').focus();};
-  el.querySelectorAll('.archin').forEach(inp=>inp.onchange=()=>{const g=matches.games[+inp.dataset.i];g.arch=inp.value.trim();g.archAuto=false;saveM();renderInsights();});
+  bindIns(el);}
+function bindIns(el){el.querySelectorAll('.archin').forEach(inp=>inp.onchange=()=>{const g=matches.games[+inp.dataset.i];g.arch=inp.value.trim();g.archAuto=false;saveM();renderInsights();});
   el.querySelectorAll('.mvf').forEach(s=>s.onchange=()=>{const g=matches.games[+s.dataset.i];if(s.value==='__new'){const n=prompt('Folder name');if(!n||!n.trim()){renderInsights();return;}g.folder=makeFolder(n);}else g.folder=s.value;saveM();renderInsights();toast('Game moved');});
   el.querySelectorAll('.viewg').forEach(b=>b.onclick=()=>viewReplay(+b.dataset.i));
   el.querySelectorAll('details.set').forEach(d=>d.ontoggle=()=>{d.open?openSets.add(d.dataset.k):openSets.delete(d.dataset.k);});
@@ -2223,7 +2242,7 @@ var DASH=null,DASH_OPEN='',DASH_BACK=null;
 const dRate=r=>r>=.55?'var(--mint)':r<.45?'var(--rose)':'var(--moon)';
 const DASH_ICON='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/></svg>';
 function dashPanel(id,title,color,body,full,extra){return `<section class="dp" id="dp-${id}" style="--bc:${color}" aria-label="${title}"><div class="dp-h"><h3>${title}</h3>${extra||''}${full?`<button type="button" class="dp-x" data-full="${full}" aria-label="Open the full ${title} view" title="Open the full view">${DASH_ICON}</button>`:''}</div><div class="dp-b">${body}</div></section>`;}
-function dashRow(label,r,dim){return `<div class="dr"${dim?' style="opacity:.55"':''}><div class="dr-t"><span class="dr-n">${label}</span><span class="dr-v"><small>${r.w}–${r.n-r.w}</small><b>${pct(r.rate)}</b></span></div><i class="dr-bar" style="--w:${Math.round(r.rate*100)}%;--c:${dRate(r.rate)}"></i></div>`;}
+function dashRow(label,r,dim,slim){return `<div class="dr${slim?' slim':''}"${dim?' style="opacity:.55"':''}><div class="dr-t"><span class="dr-n">${label}</span><span class="dr-v"><small>${r.w}–${r.n-r.w}</small><b${slim?` style="color:${dRate(r.rate)}"`:''}>${pct(r.rate)}</b></span></div>${slim?'':`<i class="dr-bar" style="--w:${Math.round(r.rate*100)}%;--c:${dRate(r.rate)}"></i>`}</div>`;}
 function dashTrend(G){const ST=setTable();const order=new Map();G.forEach(g=>{const k=setKey(g);order.set(k,Math.min(order.get(k)??Infinity,gameOrder(g)));});
   const sets=[...order.entries()].sort((x,y)=>x[1]-y[1]).map(([k])=>{const g0=G.find(g=>setKey(g)===k);const s=ST.get(k)||{w:0,l:0,score:0,won:false};return {...s,opp:g0.opp};});
   const n=sets.length;if(n<2)return '<p class="dp-e">Log at least two sets to see a trend.</p>';
@@ -2248,7 +2267,7 @@ function renderHomeDash(G){const Lc=document.getElementById('dashL'),Rc=document
   const ST=setTable();let s20=0,s21=0,s12=0,s02=0;{const seen=new Set();G.forEach(g=>{const k=setKey(g);if(seen.has(k))return;seen.add(k);const s=ST.get(k);if(!s)return;if(s.won&&s.l===0)s20++;else if(s.won)s21++;else if(s.w>0)s12++;else s02++;});}
   const cnt=fid=>matches.games.filter(g=>(g.folder||'')===fid).length;
   const fsel=matches.folders&&matches.folders.length?`<select id="dpFolder" aria-label="Replay folder shown"><option value="all"${folderView==='all'?' selected':''}>All games (${matches.games.length})</option>${matches.folders.map(f=>`<option value="${f.id}"${folderView===f.id?' selected':''}>${esc(f.name)} (${cnt(f.id)})</option>`).join('')}${cnt('')?`<option value="__none"${folderView==='__none'?' selected':''}>Not in a folder (${cnt('')})</option>`:''}</select>`:'';
-  const act=`<div class="mi-act"><button type="button" data-dash="upload">Upload replays</button>${any?'<button type="button" class="ghost" data-dash="all">All analysis ↓</button>':'<button type="button" class="ghost" data-dash="example">Example data</button>'}</div>`;
+  const act=`<div class="mi-act"><button type="button" data-dash="upload">Upload replays</button>${any?'':'<button type="button" class="ghost" data-dash="example">Example data</button>'}</div>`;
   const mi=!G.length?`<div class="mi">${none(any?'This folder is empty.':'No games logged yet. Upload Showdown replays to fill these panels.')}${act}</div>`
    :`<div class="mi"><div class="mi-top"><div><b style="color:var(--cyan)">${OV.w}–${OV.n-OV.w}</b><span>sets won–lost</span></div><div><b style="color:${dRate(OV.rate)}">${pct(OV.rate)}</b><span>set win rate</span></div></div>
      <div class="mi-split" role="img" aria-label="${s20} sets won 2–0, ${s21} won 2–1, ${s12} lost 1–2, ${s02} lost 0–2">${[[s20,'#8ff0c0'],[s21,'rgba(143,240,192,.5)'],[s12,'rgba(255,148,200,.5)'],[s02,'#ff94c8']].filter(x=>x[0]).map(x=>`<i style="flex:${x[0]};background:${x[1]}"></i>`).join('')}</div>
@@ -2256,7 +2275,7 @@ function renderHomeDash(G){const Lc=document.getElementById('dashL'),Rc=document
      <div class="mi-meta">${OV.n} sets · ${G.length} games (${OV.gw}–${G.length-OV.gw})${matches.example?' · example data':''}</div>${act}</div>`;
   /* best leads */
   const leads=aggregate(g=>g.leads.length===2?g.leads.slice().sort().join(' + '):null,G).sort((a,b)=>b.lb-a.lb||b.n-a.n);
-  const ld=leads.length?leads.slice(0,5).map(r=>dashRow(PNS(r.k),r,r.n<minGames)).join(''):none('No lead data yet.');
+  const ld=leads.length?leads.slice(0,3).map(r=>dashRow(PNS(r.k),r,r.n<minGames,true)).join(''):none('No lead data yet.');
   /* threats */
   let th=none('No knockout data yet.');{const withK=G.filter(g=>Array.isArray(g.kos));const m=new Map(),faced=new Map();
     G.forEach(g=>new Set([...(g.oppLeads||[]),...(g.oppBack||[])]).forEach(o=>faced.set(o,(faced.get(o)||0)+1)));
@@ -2266,25 +2285,32 @@ function renderHomeDash(G){const Lc=document.getElementById('dashL'),Rc=document
       return `<div class="dr"><div class="dr-t"><span class="dr-n">${tinyEmblem(r.o,18)}${PN(r.o)}<small>${esc(mv)}</small></span><span class="dr-v"><b>${r.n}</b><small>KO${r.n>1?'s':''}</small></span></div><i class="dr-bar" style="--w:${r.n/mx*100}%;--c:${monColor(r.o)}" title="Faced in ${r.f} game${r.f===1?'':'s'}"></i></div>`;}).join('');}}
   /* best fours */
   const fours=aggregate(g=>{const a=[...g.leads,...g.back];return a.length===4?a.slice().sort().join(' · '):null;},G).sort((a,b)=>b.lb-a.lb||b.n-a.n);
-  const fo=fours.length?fours.slice(0,4).map(r=>dashRow(`<span class="d4n">${PNS(r.k)}</span>`,r,r.n<minGames)).join(''):none('Add back Pokémon to each game to see brings.');
+  const fo=fours.length?fours.slice(0,3).map(r=>dashRow(`<span class="d4n">${PNS(r.k)}</span>`,r,r.n<minGames,true)).join(''):none('Add back Pokémon to each game to see brings.');
+  const picks=`<div class="dsub">Leads</div>${ld}<div class="dsub">Four brought</div>${fo}`;
+  /* game log: one row per set, newest first */
+  let lg=none('No games yet.');{const groups=[],byKey=new Map();G.forEach(g=>{const k=g.match||('single-'+g._i);if(!byKey.has(k)){const e={k,games:[]};byKey.set(k,e);groups.push(e);}byKey.get(k).games.push(g);});
+    groups.sort((x,y)=>Math.min(...y.games.map(gameOrder))-Math.min(...x.games.map(gameOrder)));
+    if(groups.length)lg=groups.map(gr=>{const w=gr.games.filter(g=>g.win).length,l=gr.games.length-w;const arch=[...new Set(gr.games.map(g=>g.arch).filter(Boolean))].join(', ');
+      return `<button type="button" class="dlog" data-set="${esc(gr.k)}" title="Open this set in the game log"><span class="dlog-n"><b>vs ${esc(gr.games[0].opp||'Opponent')}</b>${arch?`<small>${esc(arch)}</small>`:''}</span><span class="dlog-r" style="color:${w>l?'var(--mint)':w<l?'var(--rose)':'var(--ink-dim)'}">${w>l?'Won':w<l?'Lost':'Tied'} ${w}–${l}</span></button>`;}).join('');}
   /* archetypes */
   const archs=aggregate(g=>g.arch||'Untagged',G).sort((a,b)=>b.n-a.n);
   const ar=!archs.length||(archs.length===1&&archs[0].k==='Untagged')?none('No archetypes tagged yet.'):archs.map(a=>dashRow(`${esc(a.k)}<small>${a.n} set${a.n===1?'':'s'}</small>`,a,false)).join('');
-  Lc.innerHTML=dashPanel('mi','Match insights','var(--moon)',mi,'',fsel)+dashPanel('leads','Best leads','var(--cyan)',ld,leads.length?'leads':'')+dashPanel('trend','Win rate over time','var(--cyan)',G.length?dashTrend(G):none('No sets yet.'),G.length?'trend':'');
-  Rc.innerHTML=dashPanel('threats','Biggest threats','var(--atk)',th,G.length?'threats':'')+dashPanel('fours','Best 4 compositions','var(--rose)',fo,fours.length?'fours':'')+dashPanel('arch','Archetypes','var(--mint)',ar,G.length?'arch':'');
+  Lc.innerHTML=dashPanel('mi','Match insights','var(--moon)',mi,'',fsel)+dashPanel('log','Game log','var(--moon)',lg,G.length?'log':'')+dashPanel('trend','Win rate over time','var(--cyan)',G.length?dashTrend(G):none('No sets yet.'),G.length?'trend':'');
+  Rc.innerHTML=dashPanel('threats','Biggest threats','var(--atk)',th,G.length?'threats':'')+dashPanel('picks','Best leads and 4 picks','var(--rose)',picks,(leads.length||fours.length)?'leads+fours':'')+dashPanel('arch','Archetypes','var(--mint)',ar,G.length?'arch':'');
   const fs=document.getElementById('dpFolder');if(fs)fs.onchange=()=>{folderView=fs.value;renderInsights();const x=document.getElementById('dpFolder');if(x)x.focus();};
   fillSlotPerf();if(DASH_OPEN)openFull(DASH_OPEN,true);}
 function fillSlotPerf(){if(!DASH)return;const G=DASH.G,OV=DASH.OV;document.querySelectorAll('#team .sperf').forEach(el=>{const m=el.dataset.m;if(!m||!OV.n){el.innerHTML='';return;}const R=monSets(m,G);
   el.innerHTML=R.n?`<span><b data-l="of sets">${pct(R.n/OV.n)}</b><small>of sets brought</small></span><span><b data-l="sets">${R.w}–${R.n-R.w}</b><small>set record</small></span><span><b data-l="win rate" style="color:${dRate(R.rate)}">${pct(R.rate)}</b><small>win rate</small></span>`:`<span class="np"><small>Not brought in these games yet</small></span>`;});}
-function openFull(id,keep){const s=INSIGHTS.find(x=>x.id===id),ov=document.getElementById('xov');if(!s||!DASH||!ov||!DASH.G.length){closeFull();return;}
+function openFull(id,keep,setK){const S=String(id).split('+').map(i=>INSIGHTS.find(x=>x.id===i)).filter(Boolean),ov=document.getElementById('xov');if(!S.length||!DASH||!ov||!DASH.G.length){closeFull();return;}
   if(!keep)DASH_BACK=document.activeElement;DASH_OPEN=id;const body=ov.querySelector('.xov-b');const top=keep?ov.querySelector('.xov-c').scrollTop:0;
-  body.innerHTML=`<div class="box" style="--bc:${s.color}"><h3 style="color:${s.color}">${s.title}</h3>${s.render(DASH.G,DASH.ctx)}</div>`;ov.hidden=false;ov.querySelector('.xov-c').scrollTop=top;if(!keep)ov.querySelector('.xov-x').focus();}
+  body.innerHTML=S.map(s=>`<div class="box" style="--bc:${s.color}"><h3 style="color:${s.color}">${s.title}</h3>${s.render(DASH.G,DASH.ctx)}</div>`).join('');bindIns(body);ov.hidden=false;ov.querySelector('.xov-c').scrollTop=top;if(!keep)ov.querySelector('.xov-x').focus();
+  if(setK){const d=[...body.querySelectorAll('details.set')].find(x=>x.dataset.k===setK);if(d)d.scrollIntoView({block:'start'});}}
 function closeFull(){const ov=document.getElementById('xov');if(!ov||ov.hidden)return;ov.hidden=true;DASH_OPEN='';ov.querySelector('.xov-b').innerHTML='';if(DASH_BACK&&DASH_BACK.isConnected)DASH_BACK.focus();DASH_BACK=null;}
 document.addEventListener('click',e=>{const x=e.target.closest('.dp-x');if(x){openFull(x.dataset.full);return;}
+  const sr=e.target.closest('.dlog');if(sr){if(LOG_GROUP!=='set'){LOG_GROUP='set';try{localStorage.setItem('starlight-loggroup','set')}catch(err){}}openSets.add(sr.dataset.set);openFull('log',false,sr.dataset.set);return;}
   if(e.target.closest('.xov-x')||e.target.id==='xov'){closeFull();return;}
   const d=e.target.closest('[data-dash]');if(!d)return;const a=d.dataset.dash;
-  if(a==='upload')document.getElementById('btnAddGames').click();else if(a==='example')document.getElementById('btnExample').click();
-  else if(a==='all'){const t=document.getElementById('fullIns');if(t)t.scrollIntoView({behavior:'smooth',block:'start'});}});
+  if(a==='upload')document.getElementById('btnAddGames').click();else if(a==='example')document.getElementById('btnExample').click();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&DASH_OPEN)closeFull();});
 
 /* ---------- home view vs single-Pokémon view ---------- */
