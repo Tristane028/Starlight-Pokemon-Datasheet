@@ -815,6 +815,20 @@ main.grid.vt-in>*:nth-child(2){animation-delay:.05s}main.grid.vt-in>*:nth-child(
 /* fifth pass: emblems open the full pop-up directly */
 .ov-bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:8px 0 12px}
 .xov-c .box h3{padding-right:80px}
+/* boxless home: Pokémon and folder emblems sit on the sky */
+.view-home .dash .slot{background:none;border:0!important;box-shadow:none!important;backdrop-filter:none;border-radius:18px;transition:transform .15s,background .18s}
+.view-home .dash .slot:hover{background:rgba(127,160,255,.07)}
+.view-home .dash .slot::after{left:8%;right:8%;height:2px;border-radius:2px;opacity:.55}
+.view-home .dash .slot>svg{filter:drop-shadow(0 0 14px color-mix(in srgb,var(--c1) 55%,transparent))}
+.view-home .dp.shut{background:none!important;border:0!important;box-shadow:none!important;backdrop-filter:none}
+.view-home .dp.shut::before{display:none}
+.view-home .dp.shut .dp-cover{gap:14px}
+.view-home .dp.shut .dp-cap{position:static}
+.view-home .sperf span{background:rgba(8,12,40,.35);border-color:rgba(160,170,255,.14)}
+@media (min-width:1100px) and (min-height:560px){
+  .view-home .dash{--g:clamp(12px,1.4vw,22px)}
+}
+.view-home .dash .slot::after{display:none}
 
 @keyframes sphMer{0.000%{transform:scaleX(1.0000)}4.167%{transform:scaleX(0.9659)}8.333%{transform:scaleX(0.8660)}12.500%{transform:scaleX(0.7071)}16.667%{transform:scaleX(0.5000)}20.833%{transform:scaleX(0.2588)}25.000%{transform:scaleX(0.0000)}29.167%{transform:scaleX(-0.2588)}33.333%{transform:scaleX(-0.5000)}37.500%{transform:scaleX(-0.7071)}41.667%{transform:scaleX(-0.8660)}45.833%{transform:scaleX(-0.9659)}50.000%{transform:scaleX(-1.0000)}54.167%{transform:scaleX(-0.9659)}58.333%{transform:scaleX(-0.8660)}62.500%{transform:scaleX(-0.7071)}66.667%{transform:scaleX(-0.5000)}70.833%{transform:scaleX(-0.2588)}75.000%{transform:scaleX(-0.0000)}79.167%{transform:scaleX(0.2588)}83.333%{transform:scaleX(0.5000)}87.500%{transform:scaleX(0.7071)}91.667%{transform:scaleX(0.8660)}95.833%{transform:scaleX(0.9659)}100.000%{transform:scaleX(1.0000)}}
 @keyframes sphGly{0.000%{transform:translateX(48.72px) scaleX(0.0000);opacity:1}4.167%{transform:translateX(47.06px) scaleX(0.2588);opacity:1}8.333%{transform:translateX(42.19px) scaleX(0.5000);opacity:1}12.500%{transform:translateX(34.45px) scaleX(0.7071);opacity:1}16.667%{transform:translateX(24.36px) scaleX(0.8660);opacity:1}20.833%{transform:translateX(12.61px) scaleX(0.9659);opacity:1}25.000%{transform:translateX(0.00px) scaleX(1.0000);opacity:1}29.167%{transform:translateX(-12.61px) scaleX(0.9659);opacity:1}33.333%{transform:translateX(-24.36px) scaleX(0.8660);opacity:1}37.500%{transform:translateX(-34.45px) scaleX(0.7071);opacity:1}41.667%{transform:translateX(-42.19px) scaleX(0.5000);opacity:1}45.833%{transform:translateX(-47.06px) scaleX(0.2588);opacity:1}50.000%{transform:translateX(-48.72px) scaleX(0.0000);opacity:1}54.167%{transform:translateX(-47.06px) scaleX(-0.2588);opacity:0.16}58.333%{transform:translateX(-42.19px) scaleX(-0.5000);opacity:0.16}62.500%{transform:translateX(-34.45px) scaleX(-0.7071);opacity:0.16}66.667%{transform:translateX(-24.36px) scaleX(-0.8660);opacity:0.16}70.833%{transform:translateX(-12.61px) scaleX(-0.9659);opacity:0.16}75.000%{transform:translateX(-0.00px) scaleX(-1.0000);opacity:0.16}79.167%{transform:translateX(12.61px) scaleX(-0.9659);opacity:0.16}83.333%{transform:translateX(24.36px) scaleX(-0.8660);opacity:0.16}87.500%{transform:translateX(34.45px) scaleX(-0.7071);opacity:0.16}91.667%{transform:translateX(42.19px) scaleX(-0.5000);opacity:0.16}95.833%{transform:translateX(47.06px) scaleX(-0.2588);opacity:0.16}100.000%{transform:translateX(48.72px) scaleX(-0.0000);opacity:0.16}}
@@ -975,6 +989,21 @@ main.grid.vt-in>*:nth-child(2){animation-delay:.05s}main.grid.vt-in>*:nth-child(
   .hb-l.lock{animation:hbLock .26s cubic-bezier(.3,1.5,.5,1)}
 }
 @media (prefers-reduced-motion:reduce){.hb-ja{transition:none}}
+/* boxless Pokémon page: only the title keeps a panel; sections sit on the sky */
+.mgrid .mcell{background:none!important;border:0!important;box-shadow:none!important;backdrop-filter:none;border-radius:0}
+.mgrid .mc-h{padding:6px 2px 8px}
+.mgrid .mc-b{padding:2px 6px 26px 2px;-webkit-mask-image:linear-gradient(#000 calc(100% - 26px),transparent);mask-image:linear-gradient(#000 calc(100% - 26px),transparent)}
+.mgrid .herob{background:none!important;border:0!important;box-shadow:none!important;overflow:visible;padding:0 4px}
+.mgrid .herob .hbg{-webkit-mask-image:radial-gradient(ellipse 62% 58% at 50% 60%,#000 30%,transparent 100%);mask-image:radial-gradient(ellipse 62% 58% at 50% 60%,#000 30%,transparent 100%)}
+.mgrid .mfold{background:none!important;border:0!important;box-shadow:none!important;backdrop-filter:none}
+.mgrid .mfold::before{display:none}
+.mgrid .mfold .dp-cap{position:static;opacity:.0;margin-top:6px}
+.mgrid .mfold .dp-cover:hover .dp-cap,.mgrid .mfold .dp-cover:focus-visible .dp-cap{opacity:1}
+.mgrid .mfold .dp-cover{gap:14px}
+@media (min-width:1100px) and (min-height:560px){
+  .mgrid{--g:clamp(14px,1.6vw,26px)}
+  .view-mon .wrap{padding-top:16px}
+}
 </style>
 </head>
 <body>
@@ -2599,17 +2628,17 @@ document.getElementById('ovClose').onclick=()=>ovPop(false);
 document.getElementById('mback').onclick=()=>ovPop(false);
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.querySelector('.overview.pop')&&!e.target.closest('textarea'))ovPop(false);});
 
-/* title: each letter spins like a slot reel and locks left to right within 2s; the Japanese name fades in from 3s */
+/* title: each letter spins like a slot reel and locks left to right within 0.5s; the Japanese name fades in from 3s */
 var HERO_TOK=0;
 function heroName(el,name){const tok=++HERO_TOK;const nm=el.querySelector('.hb-nm'),ja=el.querySelector('.hb-ja');if(!nm)return;
   if(RM.matches){nm.textContent=name;if(ja)ja.classList.add('on');return;}
   const chars=[...name],U='ABCDEFGHIJKLMNOPQRSTUVWXYZ',Lw='abcdefghijklmnopqrstuvwxyz',D='0123456789';
   const spin=chars.map(c=>U.includes(c)?U:Lw.includes(c)?Lw:D.includes(c)?D:/\p{L}/u.test(c)?Lw:'');
-  const n=chars.filter((c,i)=>spin[i]).length||1;let k=0;const lock=chars.map((c,i)=>spin[i]?450+1450*(k++)/Math.max(1,n-1||1):0);
+  const n=chars.filter((c,i)=>spin[i]).length||1;let k=0;const lock=chars.map((c,i)=>spin[i]?120+380*(k++)/Math.max(1,n-1||1):0);
   if(ja)ja.classList.remove('on');const t0=performance.now();let last=-1e9;
   const paint=t=>{nm.innerHTML=chars.map((c,i)=>{if(!spin[i]||t>=lock[i])return `<span class="${spin[i]&&t-lock[i]<260?'hb-l lock':'hb-l'}">${esc(c)}</span>`;const p=spin[i];return `<span class="hb-l spin">${p[Math.floor(Math.random()*p.length)]}</span>`;}).join('');};
-  const step=now=>{if(tok!==HERO_TOK||!nm.isConnected)return;const t=now-t0;if(now-last>=45){last=now;paint(t);}
-    if(t<2000+280)requestAnimationFrame(step);else nm.textContent=name;};
+  const step=now=>{if(tok!==HERO_TOK||!nm.isConnected)return;const t=now-t0;if(now-last>=35){last=now;paint(t);}
+    if(t<500+280)requestAnimationFrame(step);else nm.textContent=name;};
   paint(0);requestAnimationFrame(step);
   setTimeout(()=>{if(tok===HERO_TOK&&ja&&ja.isConnected)ja.classList.add('on');},3000);}
 
