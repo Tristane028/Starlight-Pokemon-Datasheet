@@ -964,6 +964,17 @@ main.grid.vt-in>*:nth-child(2){animation-delay:.05s}main.grid.vt-in>*:nth-child(
 .mcell::before,.mcell::after{display:none!important}
 .mgrid #perf .chart svg{max-height:128px}
 .mgrid #perf .chnote{display:none}
+/* title name: slot-reel letters, then the Japanese name */
+.hb-nm{display:inline-block;white-space:pre-wrap}
+.hb-l{display:inline-block}
+.hb-l.spin{opacity:.6;filter:blur(.6px)}
+.hb-ja{opacity:0;transition:opacity 2.2s ease,letter-spacing 2.2s ease,filter 2.2s ease;letter-spacing:.3em;filter:blur(5px)}
+.hb-ja.on{opacity:1;letter-spacing:.02em;filter:none}
+@media (prefers-reduced-motion:no-preference){
+  @keyframes hbLock{0%{transform:translateY(-.22em) scale(1.18)}60%{transform:translateY(.06em)}100%{transform:none}}
+  .hb-l.lock{animation:hbLock .26s cubic-bezier(.3,1.5,.5,1)}
+}
+@media (prefers-reduced-motion:reduce){.hb-ja{transition:none}}
 </style>
 </head>
 <body>
@@ -2588,6 +2599,20 @@ document.getElementById('ovClose').onclick=()=>ovPop(false);
 document.getElementById('mback').onclick=()=>ovPop(false);
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.querySelector('.overview.pop')&&!e.target.closest('textarea'))ovPop(false);});
 
+/* title: each letter spins like a slot reel and locks left to right within 2s; the Japanese name fades in from 3s */
+var HERO_TOK=0;
+function heroName(el,name){const tok=++HERO_TOK;const nm=el.querySelector('.hb-nm'),ja=el.querySelector('.hb-ja');if(!nm)return;
+  if(RM.matches){nm.textContent=name;if(ja)ja.classList.add('on');return;}
+  const chars=[...name],U='ABCDEFGHIJKLMNOPQRSTUVWXYZ',Lw='abcdefghijklmnopqrstuvwxyz',D='0123456789';
+  const spin=chars.map(c=>U.includes(c)?U:Lw.includes(c)?Lw:D.includes(c)?D:/\p{L}/u.test(c)?Lw:'');
+  const n=chars.filter((c,i)=>spin[i]).length||1;let k=0;const lock=chars.map((c,i)=>spin[i]?450+1450*(k++)/Math.max(1,n-1||1):0);
+  if(ja)ja.classList.remove('on');const t0=performance.now();let last=-1e9;
+  const paint=t=>{nm.innerHTML=chars.map((c,i)=>{if(!spin[i]||t>=lock[i])return `<span class="${spin[i]&&t-lock[i]<260?'hb-l lock':'hb-l'}">${esc(c)}</span>`;const p=spin[i];return `<span class="hb-l spin">${p[Math.floor(Math.random()*p.length)]}</span>`;}).join('');};
+  const step=now=>{if(tok!==HERO_TOK||!nm.isConnected)return;const t=now-t0;if(now-last>=45){last=now;paint(t);}
+    if(t<2000+280)requestAnimationFrame(step);else nm.textContent=name;};
+  paint(0);requestAnimationFrame(step);
+  setTimeout(()=>{if(tok===HERO_TOK&&ja&&ja.isConnected)ja.classList.add('on');},3000);}
+
 /* ---------- home view vs single-Pokémon view ---------- */
 let VIEW='home';
 function setView(v,push){VIEW=v;ovPop(false);document.body.classList.toggle('view-home',v==='home');document.body.classList.toggle('view-mon',v==='mon');
@@ -2688,11 +2713,11 @@ function renderHero(force){const el=document.getElementById('heroBanner');if(!el
   el.innerHTML=`${heroBackdrop(v,P)}
    <div class="hb-emb">${portrait(v,p)}</div>
    <div class="hb-info"><div class="hb-dex">#${String(s.d).padStart(4,'0')}${isMega?' · <span class="hb-mega">MEGA EVOLUTION</span>':''}${p.shiny?' · <span style="color:var(--moon)">✦ Shiny</span>':''}</div>
-     <h2 class="hb-name">${esc(nice)}${JA_NAMES[s.d]&&JA_NAMES[s.d][0]?`<span class="hb-ja" lang="ja" title="${esc(JA_NAMES[s.d][1])}">(${esc(JA_NAMES[s.d][0])})</span>`:''}</h2>
+     <h2 class="hb-name" aria-label="${esc(nice)}"><span class="hb-nm" aria-hidden="true">${esc(nice)}</span>${JA_NAMES[s.d]&&JA_NAMES[s.d][0]?`<span class="hb-ja" lang="ja" title="${esc(JA_NAMES[s.d][1])}">(${esc(JA_NAMES[s.d][0])})</span>`:''}</h2>
      <div class="types">${v.t.map(pill).join('')}</div>
      <div class="hb-chips"><span>Ability <b>${esc(ab||'—')}</b></span><span>Item <b>${esc(p.item||'None')}</b></span><span>Base stat total <b>${bst}</b></span><span>Base Speed <b>${v.s[5]}</b></span></div>${matchupStrip(v,ab)}
    </div>${megaBurst?'<div class="hb-burst"><i></i><i></i><i></i><b></b></div>':''}`;
-  if(megaBurst){megaBurst=false;setTimeout(()=>{const b=el.querySelector('.hb-burst');if(b)b.remove();},1600);}}
+  if(megaBurst){megaBurst=false;setTimeout(()=>{const b=el.querySelector('.hb-burst');if(b)b.remove();},1600);}heroName(el,nice);}
 
 /* ---------- tiny type emblem (used in game log chips and hover cards) ---------- */
 function spByName(n){let i=spById.get(id(n));if(i===undefined)i=spById.get(id(String(n).replace(/-Mega(-[XYZ])?$/,'')));if(i===undefined)i=spById.get(id(String(n).split('-')[0]));return i===undefined?null:SPECIES[i];}
