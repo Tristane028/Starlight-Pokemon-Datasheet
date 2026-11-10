@@ -789,6 +789,28 @@ main.grid.vt-in>*:nth-child(2){animation-delay:.05s}main.grid.vt-in>*:nth-child(
 }
 .mi-act select{flex:1 1 0;min-width:0;width:auto;padding:5px 24px 5px 9px;font-size:12px;border-radius:10px;background-position:calc(100% - 13px) 55%,calc(100% - 8px) 55%}
 .mi-act button{flex:1 1 0}
+
+/* fourth pass: cells start closed, showing only their emblem */
+.dp.shut{background:rgba(18,22,66,.38);min-height:120px}
+.dp.shut::before{opacity:.5}
+.dp-cover{position:relative;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;width:100%;min-height:0;padding:10px;background:none;border:0;border-radius:inherit;color:var(--bc);cursor:pointer}
+.dp-big{position:relative;display:flex;align-items:center;justify-content:center;width:clamp(58px,10.5vh,96px);height:clamp(58px,10.5vh,96px);border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,color-mix(in srgb,var(--bc) 30%,#0d1240),#0d1240 72%);border:2px solid color-mix(in srgb,var(--bc) 75%,transparent);box-shadow:0 0 26px -6px var(--bc),inset 0 0 14px -6px var(--bc);transition:transform .25s,box-shadow .25s}
+.dp-big::before{content:"";position:absolute;inset:-9px;border-radius:50%;border:1.5px dashed color-mix(in srgb,var(--bc) 55%,transparent)}
+.dp-big::after{content:"";position:absolute;top:-12px;left:50%;width:6px;height:6px;margin-left:-3px;border-radius:50%;background:var(--bc);box-shadow:0 0 8px var(--bc)}
+.dp-big svg{width:52%;height:52%}
+.dp-cap{position:absolute;left:0;right:0;bottom:clamp(6px,1.6vh,14px);text-align:center;font:700 13px var(--display);letter-spacing:.02em;opacity:0;transform:translateY(4px);transition:opacity .2s,transform .2s;pointer-events:none}
+.dp-cover:hover .dp-cap,.dp-cover:focus-visible .dp-cap{opacity:1;transform:none}
+.dp-cover:hover .dp-big,.dp-cover:focus-visible .dp-big{transform:scale(1.08);box-shadow:0 0 38px -4px var(--bc),inset 0 0 18px -6px var(--bc)}
+.dp.shut{transition:border-color .18s,box-shadow .18s,background .18s}
+.dp.shut:hover{background:rgba(18,22,66,.6);border-color:color-mix(in srgb,var(--bc) 75%,transparent);box-shadow:0 0 0 1px color-mix(in srgb,var(--bc) 30%,transparent),0 0 26px -8px var(--bc)}
+.dp-h .dp-x+.dp-x{margin-left:-3px}
+@media (prefers-reduced-motion:no-preference){
+  @keyframes dpOrbit{to{transform:rotate(360deg)}}
+  @keyframes dpOpen{from{opacity:0;transform:scale(.92)}}
+  .dp-big::before{animation:dpOrbit 26s linear infinite}
+  .view-home .dcol .dp.open{animation:dpOpen .35s cubic-bezier(.2,.7,.2,1) backwards;animation-delay:0s}
+}
 </style>
 </head>
 <body>
@@ -2287,7 +2309,10 @@ const DASH_EMB={mi:'<path d="M2.5 20.5h19M5.5 20.5v-8M11 20.5v-15M16.5 20.5v-10"
   threats:'<circle cx="12" cy="12" r="6.5"/><path d="M12 2.5v4.5M12 17v4.5M2.5 12H7M17 12h4.5"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/>',
   picks:'<path d="M12 3.2l2.6 5.4 5.9.8-4.3 4.1 1.1 5.9L12 16.6l-5.3 2.8 1.1-5.9L3.5 9.4l5.9-.8z"/>',
   arch:'<path d="M12 3.5l8.5 4.6-8.5 4.6-8.5-4.6z"/><path d="M3.5 12.4l8.5 4.6 8.5-4.6M3.5 16.4L12 21l8.5-4.6" opacity=".7"/>'};
-function dashPanel(id,title,color,body,full,extra){return `<section class="dp${full?' go':''}" id="dp-${id}" style="--bc:${color}" aria-label="${title}"${full?` data-full="${full}"`:''}><div class="dp-h"><span class="dp-em" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${DASH_EMB[id]||''}</svg></span><h3>${title}</h3>${extra||''}${full?`<button type="button" class="dp-x" data-full="${full}" aria-label="Open the full ${title} view" title="Open the full view">${DASH_ICON}</button>`:''}</div><div class="dp-b">${body}</div></section>`;}
+var DASH_SHOWN=new Set();
+function dashPanel(id,title,color,body,full,extra){
+  if(!DASH_SHOWN.has(id))return `<section class="dp shut" id="dp-${id}" style="--bc:${color}"><button type="button" class="dp-cover" data-show="${id}" aria-expanded="false" aria-label="Open ${title}" title="${title}"><span class="dp-big" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${DASH_EMB[id]||''}</svg></span><span class="dp-cap" aria-hidden="true">${title}</span></button></section>`;
+  return `<section class="dp open${full?' go':''}" id="dp-${id}" style="--bc:${color}" aria-label="${title}"${full?` data-full="${full}"`:''}><div class="dp-h"><span class="dp-em" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${DASH_EMB[id]||''}</svg></span><h3>${title}</h3>${extra||''}<button type="button" class="dp-x dp-c" data-hide="${id}" aria-expanded="true" aria-label="Close ${title}" title="Close back to the emblem"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 8h8"/></svg></button>${full?`<button type="button" class="dp-x dp-f" data-full="${full}" aria-label="Open the full ${title} view" title="Open the full view">${DASH_ICON}</button>`:''}</div><div class="dp-b">${body}</div></section>`;}
 function dashRow(label,r,dim,slim){return `<div class="dr${slim?' slim':''}"${dim?' style="opacity:.55"':''}><div class="dr-t"><span class="dr-n">${label}</span><span class="dr-v"><small>${r.w}–${r.n-r.w}</small><b${slim?` style="color:${dRate(r.rate)}"`:''}>${pct(r.rate)}</b></span></div>${slim?'':`<i class="dr-bar" style="--w:${Math.round(r.rate*100)}%;--c:${dRate(r.rate)}"></i>`}</div>`;}
 function dashTrend(G){const ST=setTable();const order=new Map();G.forEach(g=>{const k=setKey(g);order.set(k,Math.min(order.get(k)??Infinity,gameOrder(g)));});
   const sets=[...order.entries()].sort((x,y)=>x[1]-y[1]).map(([k])=>{const g0=G.find(g=>setKey(g)===k);const s=ST.get(k)||{w:0,l:0,score:0,won:false};return {...s,opp:g0.opp};});
@@ -2343,9 +2368,9 @@ function renderHomeDash(G){const Lc=document.getElementById('dashL'),Rc=document
   /* archetypes */
   const archs=aggregate(g=>g.arch||'Untagged',G).sort((a,b)=>b.n-a.n);
   const ar=!archs.length||(archs.length===1&&archs[0].k==='Untagged')?none('No archetypes tagged yet.'):archs.map(a=>dashRow(`${esc(a.k)}<small>${a.n} set${a.n===1?'':'s'}</small>`,a,false)).join('');
-  const hL=dashPanel('mi','Match insights','var(--moon)',mi,G.length?'overview':'')+dashPanel('log','Game log','var(--moon)',lg,G.length?'log':'')+dashPanel('trend','Win rate over time','var(--cyan)',G.length?dashTrend(G):none('No sets yet.'),G.length?'trend':'');
-  const hR=dashPanel('threats','Biggest threats','var(--atk)',th,G.length?'threats':'')+dashPanel('picks','Best leads and 4 picks','var(--rose)',picks,(leads.length||fours.length)?'leads+fours':'')+dashPanel('arch','Archetypes','var(--mint)',ar,G.length?'arch':'');
-  if(Lc._h!==hL){Lc.innerHTML=hL;Lc._h=hL;}if(Rc._h!==hR){Rc.innerHTML=hR;Rc._h=hR;}
+  const hL=[dashPanel('mi','Match insights','var(--moon)',mi,G.length?'overview':''),dashPanel('log','Game log','var(--moon)',lg,G.length?'log':''),dashPanel('trend','Win rate over time','var(--cyan)',G.length?dashTrend(G):none('No sets yet.'),G.length?'trend':'')];
+  const hR=[dashPanel('threats','Biggest threats','var(--atk)',th,G.length?'threats':''),dashPanel('picks','Leads and 4 picks','var(--rose)',picks,(leads.length||fours.length)?'leads+fours':''),dashPanel('arch','Archetypes','var(--mint)',ar,G.length?'arch':'')];
+  const put=(col,list)=>list.forEach((h,i)=>{const cur=col.children[i];if(cur&&cur._h===h)return;const t=document.createElement('template');t.innerHTML=h;const n=t.content.firstElementChild;n._h=h;if(cur)cur.replaceWith(n);else col.appendChild(n);});put(Lc,hL);put(Rc,hR);
   const fs=document.getElementById('dpFolder');if(fs)fs.onchange=()=>{folderView=fs.value;renderInsights();const x=document.getElementById('dpFolder');if(x)x.focus();};
   fillSlotPerf();if(DASH_OPEN)openFull(DASH_OPEN,true);}
 function fillSlotPerf(){if(!DASH)return;const G=DASH.G,OV=DASH.OV;document.querySelectorAll('#team .sperf').forEach(el=>{const m=el.dataset.m;if(!m||!OV.n){el.innerHTML='';return;}const R=monSets(m,G);
@@ -2358,7 +2383,9 @@ function openFull(id,keep,setK){const S=String(id).split('+').map(i=>i==='overvi
   body.innerHTML=S.map(s=>`<div class="box" style="--bc:${s.color}"><h3 style="color:${s.color}">${s.title}</h3>${s.render(DASH.G,DASH.ctx)}</div>`).join('');bindIns(body);ov.hidden=false;ov.querySelector('.xov-c').scrollTop=top;if(!keep)ov.querySelector('.xov-x').focus();
   if(setK){const d=[...body.querySelectorAll('details.set')].find(x=>x.dataset.k===setK);if(d)d.scrollIntoView({block:'start'});}}
 function closeFull(){const ov=document.getElementById('xov');if(!ov||ov.hidden)return;ov.hidden=true;DASH_OPEN='';ov.querySelector('.xov-b').innerHTML='';if(DASH_BACK&&DASH_BACK.isConnected)DASH_BACK.focus();DASH_BACK=null;}
-document.addEventListener('click',e=>{const x=e.target.closest('.dp-x');if(x){openFull(x.dataset.full);return;}
+document.addEventListener('click',e=>{const sh=e.target.closest('[data-show]');if(sh&&DASH){const id=sh.dataset.show;DASH_SHOWN.add(id);renderHomeDash(DASH.G);const b=document.querySelector('#dp-'+id+' .dp-c');if(b)b.focus({preventScroll:true});return;}
+  const hd=e.target.closest('[data-hide]');if(hd&&DASH){const id=hd.dataset.hide;DASH_SHOWN.delete(id);renderHomeDash(DASH.G);const b=document.querySelector('#dp-'+id+' .dp-cover');if(b)b.focus({preventScroll:true});return;}
+  const x=e.target.closest('.dp-f');if(x){openFull(x.dataset.full);return;}
   const sr=e.target.closest('.dlog');if(sr){if(LOG_GROUP!=='set'){LOG_GROUP='set';try{localStorage.setItem('starlight-loggroup','set')}catch(err){}}openSets.add(sr.dataset.set);openFull('log',false,sr.dataset.set);return;}
   if(e.target.closest('.xov-x')||e.target.id==='xov'){closeFull();return;}
   const d=e.target.closest('[data-dash]');if(!d)return;const a=d.dataset.dash;
