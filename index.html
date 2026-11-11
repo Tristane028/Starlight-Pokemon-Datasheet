@@ -6,7 +6,7 @@
 <title>Project Astral</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700;800&family=Exo+2:wght@200;300;400;600&display=swap" rel="stylesheet">
 <style>
 :root{
   color-scheme: dark;
@@ -1141,6 +1141,128 @@ body{font-size:13.5px;letter-spacing:-.01em}
   #cellStats .evsum>span:first-child{white-space:nowrap}
   #cellStats .evsum button{white-space:nowrap;padding:4px 8px;font-size:11px}
 }
+/* ===== Astral HUD layer: Observatory × Hologram =====
+   One additive block of overrides; nothing above it was changed.
+   To go back: delete from this comment down to "end Astral HUD layer".
+   Knobs: --hud-tilt (0deg = flat side columns) · --hud-grid and --hud-grid-major (grid line strength, transparent = off). */
+:root{--hud-tilt:8deg;--hud-grid:rgba(140,205,255,.045);--hud-grid-major:rgba(140,205,255,.1);
+  --hud-glass:rgba(120,140,255,.08);--hud-solid:rgba(10,14,50,.93);--hud-edge:rgba(160,170,255,.5);
+  --hud-glow:inset 0 0 26px rgba(127,220,255,.14),0 0 16px rgba(127,220,255,.1);
+  --hud-r:16px 4px 16px 4px;--hud-rs:10px 3px 10px 3px;
+  --hud-thin:"Exo 2","JetBrains Mono",system-ui,sans-serif;
+  --hud-rule:linear-gradient(rgba(140,205,255,.5),rgba(140,205,255,.5)) 0 100%/100% 1px no-repeat,repeating-linear-gradient(90deg,rgba(140,205,255,.5) 0 1px,transparent 1px 8px)}
+
+/* console backdrop: flat deep navy, a soft centre glow, a two-level grid, range rings and a crosshair.
+   The starfield, nebula and moon are hidden, not removed; delete the three "display:none" rules to get them back. */
+#stars,#twinkle,.moon{display:none!important}
+body{background:radial-gradient(70% 60% at 50% 45%,rgba(36,84,150,.34) 0%,transparent 70%),linear-gradient(180deg,#04071a 0%,#070c26 100%)!important;background-color:#04071a!important;background-attachment:fixed!important}
+body::before{content:""!important;position:fixed!important;inset:0!important;z-index:0;pointer-events:none;animation:none!important;filter:none!important;opacity:1!important;transform:none!important;
+  background:
+   linear-gradient(rgba(140,205,255,.1),rgba(140,205,255,.1)) 50% 0/1px 100% no-repeat,
+   linear-gradient(rgba(140,205,255,.1),rgba(140,205,255,.1)) 0 50%/100% 1px no-repeat,
+   repeating-radial-gradient(circle at 50% 50%,transparent 0 119px,rgba(140,205,255,.1) 119px 120px)!important;
+  -webkit-mask:radial-gradient(circle at 50% 50%,#000 0,transparent 62%);mask:radial-gradient(circle at 50% 50%,#000 0,transparent 62%)}
+.wrap::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background-image:
+   linear-gradient(var(--hud-grid-major) 1px,transparent 1px),linear-gradient(90deg,var(--hud-grid-major) 1px,transparent 1px),
+   linear-gradient(var(--hud-grid) 1px,transparent 1px),linear-gradient(90deg,var(--hud-grid) 1px,transparent 1px),
+   repeating-linear-gradient(0deg,rgba(127,220,255,.025) 0 1px,transparent 1px 3px);
+  background-size:120px 120px,120px 120px,24px 24px,24px 24px,auto;background-position:50% 50%}
+
+/* thin display face for names and big numbers; mono stays for labels */
+h1{font-family:var(--hud-thin);font-weight:200;letter-spacing:.2em;text-transform:uppercase}
+.slot .nm,.ov-name,.hb-name,.pc-h b,.mt-h b{font-family:var(--hud-thin)!important;font-weight:300!important;letter-spacing:.08em!important;text-transform:uppercase}
+.slot .nm{letter-spacing:.04em!important}
+.hb-name{font-weight:200!important;letter-spacing:.12em!important}
+.ov-head h2::after{display:none}
+.hb-ja{letter-spacing:.02em!important;text-transform:none}
+.sperf b,.kpi b,.stat .final,.spd b,.ub-v{font-family:var(--hud-thin)!important;font-weight:300!important;letter-spacing:.02em}
+.stat .final{font-size:21px}
+.mvname{font-family:var(--hud-thin);font-weight:600;letter-spacing:.04em!important;text-transform:uppercase}
+
+/* section headers: wide-tracked label ending in a tick ruler */
+.panel h2,.mc-h h2,.ov-head h2{display:flex;align-items:center;gap:8px;font-family:var(--body)!important;font-size:12px!important;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
+.panel h2::after,.mc-h h2::after{content:"";display:block;flex:1;min-width:30px;height:7px;background:var(--hud-rule);opacity:.8}
+.ov-h{letter-spacing:.16em}
+.ov-h::after{content:"";flex:1;height:7px;background:var(--hud-rule);opacity:.45}
+.box h3{font-family:var(--body);font-size:12.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
+.box::before{height:1px}
+label.f,.spdbox h4,.tb-l,.fmt{letter-spacing:.12em;text-transform:uppercase}
+
+/* glass: translucent fill, inner glow, one soft and one sharp corner pair */
+.sperf span,.spd div,.ovc,.hb-chips span,.kpi:not(.minr),.hchip,.af{border-radius:var(--hud-rs)!important;background:var(--hud-glass)!important;border-color:var(--hud-edge)!important;box-shadow:inset 0 0 14px rgba(127,220,255,.08)!important}
+.box,.acard,.viab,.mu,details.set,.callout,.empty-ins{border-radius:var(--hud-r)!important;background:var(--hud-glass);border-color:var(--hud-edge)!important;box-shadow:var(--hud-glow)!important}
+.callout{border-left-width:1px!important}
+.callout.good{border-color:var(--mint)!important}.callout.bad{border-color:var(--rose)!important}
+dialog,.xov-c,.mvtip,.pncard,.cb .list{border-radius:var(--hud-r)!important;background:var(--hud-solid)!important;border-color:var(--hud-edge)!important;box-shadow:var(--hud-glow),0 30px 80px rgba(0,0,0,.6)!important;backdrop-filter:blur(10px)}
+.xov-c .box{box-shadow:none!important;background:none}
+.mgrid .hb-info{border-radius:var(--hud-r)!important;background:rgba(8,12,44,.6);box-shadow:inset 0 0 26px -8px var(--h1,rgba(127,220,255,.4)),0 0 24px -10px var(--h1,transparent)!important}
+input[type=text],select,.cb input,.sl input[type=number],.fn-edit{border-radius:var(--hud-rs);background-color:rgba(8,12,44,.6);border-color:var(--hud-edge)}
+
+/* controls: pill buttons, wide-tracked mono labels */
+button.ghost,button.warn,.actions button,.teambar button,.mc-h button,.ov-actions button,.fn-btns button,.fn-ed,.totop,.xov-x,dialog button{border-radius:999px!important;font-family:var(--body);font-size:11px!important;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+.actions button,.teambar button{background:rgba(127,220,255,.08);border-color:rgba(127,220,255,.6);color:var(--cyan)}
+button.ghost{background:none;border-color:var(--hud-edge);color:var(--ink-dim)}
+button.ghost:hover,.actions button:hover{background:rgba(127,220,255,.18);box-shadow:0 0 10px rgba(127,220,255,.35)}
+button.warn{background:rgba(255,148,200,.08);border-color:rgba(255,148,200,.6);color:var(--rose)}
+#btnExport{background:var(--moon);border-color:var(--moon);color:#060a22;box-shadow:0 0 14px rgba(255,230,163,.35)}
+#btnExport:hover{background:var(--moon);box-shadow:0 0 18px rgba(255,230,163,.6)}
+.homebtn{border:1px solid var(--moon);background:var(--moon);box-shadow:0 0 16px rgba(255,230,163,.4);font:700 12px var(--body);letter-spacing:.14em;text-transform:uppercase;color:#060a22;text-shadow:none}
+.homebtn::after{display:none}
+.homebtn:hover{box-shadow:0 0 22px rgba(255,230,163,.65)}
+.seg{border-color:var(--hud-edge)}
+.seg button{background:none;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.seg button[aria-pressed="true"]{background:var(--cyan);color:#060a22}
+.shinyck{letter-spacing:.12em;text-transform:uppercase;font-size:11px;font-weight:700}
+.shinyck input{-webkit-appearance:none;appearance:none;flex:none;position:relative;width:34px;height:18px;margin:0;border-radius:999px;background:rgba(160,170,255,.22);cursor:pointer;transition:background .15s}
+.shinyck input::before{content:"";position:absolute;top:3px;left:3px;width:12px;height:12px;border-radius:50%;background:var(--ink-dim);transition:transform .15s}
+.shinyck input:checked{background:var(--cyan);box-shadow:0 0 10px rgba(127,220,255,.5)}
+.shinyck input:checked::before{transform:translateX(16px);background:#060a22}
+
+/* meters: segmented, square-ended */
+.slot .bstbar,.bar{height:8px;border-radius:0;background:rgba(160,170,255,.16);
+  -webkit-mask:repeating-linear-gradient(90deg,#000 0 6px,transparent 6px 9px);mask:repeating-linear-gradient(90deg,#000 0 6px,transparent 6px 9px)}
+.slot .bstbar i,.bar i{border-radius:0}
+
+/* move cards: type-tinted glass in place of the glossy pill */
+.move .cb input{border-radius:16px 4px 16px 4px!important}
+.mvcard{border-radius:var(--hud-r)}
+.mvwrap.has .mvcard{background:color-mix(in srgb,var(--mc) 20%,rgba(8,12,44,.82));border:1px solid color-mix(in srgb,var(--mc) 80%,transparent);box-shadow:inset 0 0 20px -6px var(--mc),0 0 14px -8px var(--mc)}
+.mvwrap.has .mvcard::after{display:none}
+.mvwrap:not(.has) .mvcard{border-width:1px}
+.mvtext{color:var(--ink-bright,#e9ecff)}
+.mvname{color:color-mix(in srgb,var(--mc) 55%,#fff)}
+.mvcat{color:color-mix(in srgb,var(--mc) 55%,#fff)}
+.mvbadge{box-shadow:0 0 0 1px color-mix(in srgb,var(--mc) 80%,transparent),0 0 12px -2px var(--mc)}
+.stab{color:#060a22;background:color-mix(in srgb,var(--mc) 70%,#fff)}
+
+/* targeting brackets: every home slot, and the centre emblem on the Pokémon page */
+.view-home .dash .slot{--k:rgba(140,205,255,.3);
+  background:
+   linear-gradient(var(--k),var(--k)) 0 0/16px 1px,linear-gradient(var(--k),var(--k)) 0 0/1px 16px,
+   linear-gradient(var(--k),var(--k)) 100% 0/16px 1px,linear-gradient(var(--k),var(--k)) 100% 0/1px 16px,
+   linear-gradient(var(--k),var(--k)) 0 100%/16px 1px,linear-gradient(var(--k),var(--k)) 0 100%/1px 16px,
+   linear-gradient(var(--k),var(--k)) 100% 100%/16px 1px,linear-gradient(var(--k),var(--k)) 100% 100%/1px 16px;
+  background-repeat:no-repeat;border-radius:0}
+.view-home .dash .slot:hover,.view-home .dash .slot:focus-visible,.view-home .dash .slot[aria-current="true"]{--k:var(--moon)}
+.mgrid .hb-emb{--k:var(--moon);
+  background:
+   linear-gradient(var(--k),var(--k)) 0 0/22px 2px,linear-gradient(var(--k),var(--k)) 0 0/2px 22px,
+   linear-gradient(var(--k),var(--k)) 100% 0/22px 2px,linear-gradient(var(--k),var(--k)) 100% 0/2px 22px,
+   linear-gradient(var(--k),var(--k)) 0 100%/22px 2px,linear-gradient(var(--k),var(--k)) 0 100%/2px 22px,
+   linear-gradient(var(--k),var(--k)) 100% 100%/22px 2px,linear-gradient(var(--k),var(--k)) 100% 100%/2px 22px;
+  background-repeat:no-repeat}
+
+/* hologram tilt: side columns lean toward the centre on wide screens */
+@media (min-width:1100px) and (min-height:560px){
+  .view-home #dashL{transform:perspective(1400px) rotateY(var(--hud-tilt));transform-origin:left center}
+  .view-home #dashR{transform:perspective(1400px) rotateY(calc(var(--hud-tilt) * -1));transform-origin:right center}
+}
+@media (min-width:1181px){
+  .view-mon .mgrid .mL{transform:perspective(1800px) rotateY(calc(var(--hud-tilt) * .6));transform-origin:left center}
+  .view-mon .mgrid .mR{transform:perspective(1800px) rotateY(calc(var(--hud-tilt) * -.6));transform-origin:right center}
+}
+/* ===== end Astral HUD layer ===== */
 </style>
 </head>
 <body>
