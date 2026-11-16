@@ -1276,6 +1276,14 @@ button.warn{background:rgba(255,148,200,.08);border-color:rgba(255,148,200,.6);c
 }
 @media (prefers-reduced-motion:reduce){.sd-sweep{display:none}}
 /* ===== end Astral HUD layer ===== */
+
+/* ===== sound toggle ===== */
+.sndbtn{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;padding:0!important;border-radius:50%}
+.sndbtn svg{width:16px;height:16px}
+.sndbtn[aria-pressed="false"]{opacity:.55}
+.mdock .sndbtn{width:34px;height:34px;flex:none}
+/* the message bar is invisible between messages, so it shouldn't catch clicks then */
+.toast:not(.on){pointer-events:none}
 </style>
 </head>
 <body>
@@ -3259,6 +3267,342 @@ render();renderInsights();
   const m=await db.doc(`data/users/${uid}/matches`).get();
   if(m.exists){const d=JSON.parse(JSON.stringify(m.data()));if(Array.isArray(d.games)){matches={games:d.games,example:!!d.example,player:d.player||'',folders:Array.isArray(d.folders)?d.folders:[]};const have=new Set(matches.games.map(g=>g.replay).filter(Boolean));let add=0;for(const g of SEED_GAMES){if(g.replay&&!have.has(g.replay)){matches.games.push(JSON.parse(JSON.stringify(g)));add++;}}if(add&&!matches.folders.some(f=>f.id===SEED_FOLDER.id))matches.folders.push({...SEED_FOLDER});if(add)saveRemote('matches');if(assignTeams())saveRemote('matches');renderTeamBar();renderInsights();}}else if(matches.games.length)saveRemote('matches');
 }catch(e){}})();
+
+/* ========== SOUND ==========
+   every effect is built right here with the Web Audio API, so there are no sound files to upload.
+   browsers block audio until you click or press a key on the page, so Astral stays quiet until then.
+   the plan is to only mark the big moments: scanning a Pokémon, the name roulette, opening a folder,
+   switching Pokémon, uploading replays and saving an overview. nothing on hover or on the sliders. */
+const SND = {
+    on: true,
+    ctx: null,
+    out: null,
+    volume: 0.32, // kept low on purpose, these should sit under whatever you're listening to
+    hum: null, // the scan hum that's playing right now, so a new scan can cut it off
+};
+try {
+    SND.on = localStorage.getItem("astral-sound") !== "off";
+} catch (e) {}
+
+/* make the audio graph on the first click or key press. before that the browser won't let us play anything */
+function sndWake() {
+    if (SND.ctx) {
+        if (SND.ctx.state === "suspended") SND.ctx.resume();
+        return;
+    }
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    SND.ctx = new AC();
+    const master = SND.ctx.createGain();
+    master.gain.value = SND.volume;
+    // a gentle compressor so a few sounds landing at once never get harsh
+    const squash = SND.ctx.createDynamicsCompressor();
+    squash.threshold.value = -18;
+    squash.ratio.value = 4;
+    master.connect(squash);
+    squash.connect(SND.ctx.destination);
+    SND.out = master;
+}
+addEventListener("pointerdown", sndWake, true);
+addEventListener("keydown", sndWake, true);
+
+/* true when we're allowed to make noise right now */
+const sndReady = () => SND.on && SND.ctx && SND.ctx.state === "running";
+
+/* one short note. it can slide from f to f2, and fades in and out fast so it never clicks.
+   `at` is how many seconds from now it starts */
+function sndTone(f, f2, dur, type, vol, at) {
+    if (!sndReady()) return;
+    const c = SND.ctx;
+    const t = c.currentTime + (at || 0);
+    const osc = c.createOscillator();
+    const g = c.createGain();
+    osc.type = type || "sine";
+    osc.frequency.setValueAtTime(f, t);
+    if (f2 && f2 !== f) osc.frequency.exponentialRampToValueAtTime(f2, t + dur);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + Math.min(0.012, dur / 3));
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    osc.connect(g);
+    g.connect(SND.out);
+    osc.start(t);
+    osc.stop(t + dur + 0.02);
+}
+
+/* a quick breath of filtered static. the filter slides from f to f2, which gives the "whoosh" */
+function sndAir(f, f2, dur, vol, at) {
+    if (!sndReady()) return;
+    const c = SND.ctx;
+    const t = c.currentTime + (at || 0);
+    const len = Math.ceil(c.sampleRate * dur);
+    const buf = c.createBuffer(1, len, c.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+    const src = c.createBufferSource();
+    src.buffer = buf;
+    const band = c.createBiquadFilter();
+    band.type = "bandpass";
+    band.Q.value = 1.4;
+    band.frequency.setValueAtTime(f, t);
+    band.frequency.exponentialRampToValueAtTime(f2, t + dur);
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + dur * 0.35);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    src.connect(band);
+    band.connect(g);
+    g.connect(SND.out);
+    src.start(t);
+    src.stop(t + dur + 0.02);
+}
+
+/* ---- the sound set ---- */
+const SFX = {
+    /* a folder opening: a note rising with a little air behind it */
+    open() {
+        sndTone(330, 740, 0.2, "sine", 0.16);
+        sndAir(700, 2600, 0.24, 0.05);
+    },
+    /* and closing again: the same thing falling */
+    close() {
+        sndTone(700, 320, 0.18, "sine", 0.13);
+        sndAir(2400, 650, 0.2, 0.04);
+    },
+    /* switching Pokémon in the dock. each slot has its own note of a C major pentatonic scale,
+       so your six together make a little chord and you start to learn the slots by ear */
+    slot(i) {
+        const notes = [523.25, 587.33, 659.25, 783.99, 880, 1046.5];
+        const f = notes[i] || notes[0];
+        sndTone(f, f * 0.98, 0.11, "sine", 0.13);
+        sndTone(f * 2, f * 2, 0.05, "triangle", 0.03);
+    },
+    /* one tick of the name roulette. the pitch wobbles a bit so it sounds like a reel, not a metronome */
+    tick(vol) {
+        sndTone(1700 + Math.random() * 900, 0, 0.014, "triangle", vol || 0.035);
+    },
+    /* the name locking in */
+    lock() {
+        sndTone(1250, 1180, 0.05, "square", 0.04);
+        sndAir(3000, 2000, 0.04, 0.05);
+    },
+    /* the scan: a low hum that climbs while the dial sweeps, then "scan complete".
+       `tok` is the scan's id, so if you jump to another Pokémon halfway through, the old scan stays quiet */
+    scan(tok) {
+        SFX.stopHum();
+        if (!sndReady()) return;
+        const c = SND.ctx;
+        const t = c.currentTime;
+        const g = c.createGain();
+        const low = c.createBiquadFilter();
+        low.type = "lowpass";
+        low.Q.value = 6;
+        low.frequency.setValueAtTime(320, t);
+        low.frequency.exponentialRampToValueAtTime(1700, t + 1.75);
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.06, t + 0.25);
+        g.gain.setValueAtTime(0.06, t + 1.55);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 1.85);
+        // two slightly detuned voices give the hum a slow shimmer
+        const voices = [0, 7].map((cents) => {
+            const o = c.createOscillator();
+            o.type = "sawtooth";
+            o.detune.value = cents;
+            o.frequency.setValueAtTime(88, t);
+            o.frequency.exponentialRampToValueAtTime(176, t + 1.75);
+            o.connect(low);
+            o.start(t);
+            o.stop(t + 1.9);
+            return o;
+        });
+        low.connect(g);
+        g.connect(SND.out);
+        SND.hum = { g, voices };
+        setTimeout(() => {
+            if (tok !== SCAN.tok) return;
+            sndTone(880, 880, 0.09, "sine", 0.13);
+            sndTone(1318.5, 1318.5, 0.22, "sine", 0.12, 0.09);
+        }, 1880);
+    },
+    /* fade out a hum that's still going (used when a new scan starts or you head home) */
+    stopHum() {
+        const h = SND.hum;
+        SND.hum = null;
+        if (!h || !SND.ctx) return;
+        const t = SND.ctx.currentTime;
+        h.g.gain.cancelScheduledValues(t);
+        h.g.gain.setValueAtTime(Math.max(h.g.gain.value, 0.0001), t);
+        h.g.gain.exponentialRampToValueAtTime(0.0001, t + 0.08);
+        h.voices.forEach((o) => {
+            try {
+                o.stop(t + 0.1);
+            } catch (e) {}
+        });
+    },
+    /* one replay read during an upload. calls that come in fast get spaced out so they stay ticks, not a buzz */
+    read() {
+        if (!sndReady()) return;
+        const now = SND.ctx.currentTime;
+        SND.nextRead = Math.max(now, SND.nextRead || 0);
+        sndTone(1480, 1480, 0.025, "sine", 0.06, SND.nextRead - now);
+        SND.nextRead += 0.045;
+    },
+    /* the upload went through: two notes up */
+    done() {
+        const wait = sndReady() ? Math.max(0, (SND.nextRead || 0) - SND.ctx.currentTime) : 0;
+        sndTone(659.25, 659.25, 0.16, "sine", 0.13, wait + 0.05);
+        sndTone(987.77, 987.77, 0.34, "sine", 0.12, wait + 0.16);
+    },
+    /* something in the upload wasn't a replay: a short low buzz */
+    fail() {
+        const wait = sndReady() ? Math.max(0, (SND.nextRead || 0) - SND.ctx.currentTime) : 0;
+        sndTone(116, 98, 0.24, "sawtooth", 0.07, wait + 0.05);
+        sndTone(110, 92, 0.24, "square", 0.025, wait + 0.05);
+    },
+    /* an overview edit saved */
+    saved() {
+        sndTone(783.99, 783.99, 0.07, "triangle", 0.1);
+        sndTone(1174.66, 1174.66, 0.18, "triangle", 0.09, 0.07);
+    },
+};
+
+/* ---- hooking the sounds into the page ----
+   rather than editing every function, each one below gets wrapped: it runs exactly like before,
+   and the sound plays next to it */
+
+// opening and closing a home folder
+const sndOpenFull = openFull;
+openFull = function (id, keep, setK) {
+    const wasOpen = !!DASH_OPEN;
+    sndOpenFull(id, keep, setK);
+    if (!keep && !wasOpen && DASH_OPEN) SFX.open();
+};
+const sndCloseFull = closeFull;
+closeFull = function () {
+    const wasOpen = !!DASH_OPEN;
+    sndCloseFull();
+    if (wasOpen && !DASH_OPEN) SFX.close();
+};
+
+// the scan when a Pokémon page opens
+const sndRunScan = runScan;
+runScan = function () {
+    sndRunScan();
+    if (spOf(cur())) SFX.scan(SCAN.tok);
+};
+const sndGoHome = goHome;
+goHome = function () {
+    SFX.stopHum();
+    sndGoHome();
+};
+
+// the name roulette: ticks for the 1 second the letters spin (same timing as heroName), then the lock
+const sndHeroName = heroName;
+heroName = function (el, name) {
+    sndHeroName(el, name);
+    if (RM.matches || !sndReady()) return;
+    const tok = HERO_TOK;
+    const start = performance.now();
+    const spin = setInterval(() => {
+        if (tok !== HERO_TOK) return clearInterval(spin);
+        if (performance.now() - start >= 1000) {
+            clearInterval(spin);
+            SFX.lock();
+            return;
+        }
+        SFX.tick();
+    }, 60);
+};
+
+// switching Pokémon from the dock
+document.getElementById("monSwitch").addEventListener(
+    "click",
+    (e) => {
+        const b = e.target.closest(".msw");
+        if (b && +b.dataset.i !== state.active) SFX.slot(+b.dataset.i);
+    },
+    true
+);
+
+// uploading replay files: a tick per replay read, then a chime (or a buzz if a file wasn't a replay)
+const UPLOAD = { active: false, failed: 0 };
+const sndParseReplay = parseReplay;
+parseReplay = function (txt, name) {
+    const r = sndParseReplay(txt, name);
+    if (UPLOAD.active) {
+        if (r) SFX.read();
+        else UPLOAD.failed++;
+    }
+    return r;
+};
+const gfileEl = document.getElementById("gfile");
+const sndFileUpload = gfileEl.onchange;
+gfileEl.onchange = async function (e) {
+    const before = matches.games.length;
+    UPLOAD.active = true;
+    UPLOAD.failed = 0;
+    try {
+        await sndFileUpload.call(this, e);
+    } finally {
+        UPLOAD.active = false;
+    }
+    if (UPLOAD.failed) SFX.fail();
+    else if (matches.games.length > before) SFX.done();
+};
+// pasting a replay or a table instead of picking files
+const gAddEl = document.getElementById("gAdd");
+const sndPasteAdd = gAddEl.onclick;
+gAddEl.onclick = function (e) {
+    const before = matches.games.length;
+    sndPasteAdd.call(this, e);
+    if (matches.games.length > before) SFX.done();
+    else if (gdlg.open) SFX.fail();
+};
+
+// saving an overview edit
+const ovEditEl = document.getElementById("ovEdit");
+const sndOvEdit = ovEditEl.onclick;
+ovEditEl.onclick = function (e) {
+    const wasEditing = ovEditing;
+    sndOvEdit.call(this, e);
+    if (wasEditing && !ovEditing) SFX.saved();
+};
+
+/* ---- the speaker button. there's one in the top bar on home and one in the dock on the Pokémon pages ---- */
+const SND_ICON_ON =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4.2 4.2 0 0 1 0 6M18.2 6.5a8 8 0 0 1 0 11"/></svg>';
+const SND_ICON_OFF =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/></svg>';
+function sndPaint() {
+    document.querySelectorAll(".sndbtn").forEach((b) => {
+        b.innerHTML = SND.on ? SND_ICON_ON : SND_ICON_OFF;
+        b.setAttribute("aria-pressed", String(SND.on));
+        b.title = SND.on ? "Sound on (click to mute)" : "Sound off (click to unmute)";
+    });
+}
+function sndToggle() {
+    SND.on = !SND.on;
+    try {
+        localStorage.setItem("astral-sound", SND.on ? "on" : "off");
+    } catch (e) {}
+    sndPaint();
+    if (SND.on) {
+        sndWake();
+        // a tiny blip so you know it's back on
+        setTimeout(() => sndTone(880, 1046.5, 0.08, "sine", 0.1), 30);
+    } else SFX.stopHum();
+}
+[
+    [document.querySelector("header.top .actions"), "afterbegin"],
+    [document.querySelector(".mdock"), "beforeend"],
+].forEach(([spot, where]) => {
+    if (!spot) return;
+    spot.insertAdjacentHTML(
+        where,
+        '<button type="button" class="ghost sndbtn" aria-label="Sound effects" aria-pressed="true"></button>'
+    );
+});
+document.querySelectorAll(".sndbtn").forEach((b) => b.addEventListener("click", sndToggle));
+sndPaint();
 })();
 </script>
 </body>
