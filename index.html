@@ -2752,7 +2752,7 @@ function drawTyping(T,pos){let caretPlaced=false;for(const o of T.nodes){const k
   T.heads.forEach((h,i)=>h.classList.toggle('pending',(T.pStart[i]??0)>pos));}
 function startTyping(fromPos){const body=document.getElementById('ovBody');if(!body.querySelector('.ov-p')){SCAN.done=true;return;}
   TYPE=prepTyping();SCAN.total=TYPE.total;SCAN.pos=fromPos||0;const tok=SCAN.tok;const T=TYPE;
-  const dur=Math.min(20000,Math.max(10000,T.total*4)),p0=SCAN.pos,t0=performance.now();drawTyping(T,SCAN.pos);
+  const dur=Math.min(9000,Math.max(4500,T.total*2)),p0=SCAN.pos,t0=performance.now();drawTyping(T,SCAN.pos);
   const tick=now=>{if(tok!==SCAN.tok||T!==TYPE)return;SCAN.pos=Math.min(T.total,Math.round(p0+(T.total-p0)*Math.min(1,(now-t0)/dur)));drawTyping(T,SCAN.pos);
     setStatus('Analyzing matchups and role…',.35+.65*SCAN.pos/T.total);
     if(SCAN.pos<T.total)requestAnimationFrame(tick);else finishScan(tok);};requestAnimationFrame(tick);}
@@ -3328,7 +3328,7 @@ function sndTone(f, dur, o) {
     g.connect(SND.out);
     osc.start(t);
     osc.stop(t + dur + 0.02);
-    if (SND.collect) SND.collect.push({ osc, g });
+    if (SND.collect) SND.collect.push({ osc, g, at: t });
 }
 
 /* a tiny burst of filtered static, the "bit noise" crackle */
@@ -3349,17 +3349,22 @@ function sndBits(dur, f, vol, at) {
     const hp = c.createBiquadFilter();
     hp.type = "highpass";
     hp.frequency.value = f;
+    // and a lowpass on top, which rounds off the single-sample spikes that a highpass leaves on steps like these
+    const lp = c.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.value = 9000;
     const g = c.createGain();
     // a 2 ms fade in, so the crackle never starts with a sharp click
     g.gain.setValueAtTime(0.0001, t);
     g.gain.exponentialRampToValueAtTime(vol, t + 0.002);
     g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     src.connect(hp);
-    hp.connect(g);
+    hp.connect(lp);
+    lp.connect(g);
     g.connect(SND.out);
     src.start(t);
     src.stop(t + dur + 0.02);
-    if (SND.collect) SND.collect.push({ osc: src, g });
+    if (SND.collect) SND.collect.push({ osc: src, g, at: t });
 }
 
 /* run fn and hand back every note it made, so the whole effect can be stopped as one */
@@ -3416,34 +3421,11 @@ const SFX = {
         sndTone(2093, 0.03, { vol: 0.05, at: 1.0, lp: 4000 });
         sndTone(2637, 0.05, { vol: 0.04, at: 1.03, lp: 4000 });
     },
-    /* opening a Pokémon: the Pokémon getting built out of code.
-       it starts as scattered data bleeps at random pitches with a little bit-noise crackle,
-       speeds up, and more and more of the bleeps land on a clean rising pattern until it's all
-       pattern. then a fast arpeggio "compiles" it and a two-step chirp says the build is done */
+    /* opening a Pokémon with reduced motion on (no typing to follow): a short, 1.9 second build */
     materialize() {
-        const pattern = [1046.5, 1318.51, 1567.98, 2093]; // the "finished" notes, a C major chord
-        const wild = [587, 698, 830, 932, 1109, 1245, 1480, 1661, 1865, 2217, 2489, 2794, 3136];
-        let at = 0.02;
-        let k = 0;
-        // phase 1, raw code: about 1.1 seconds of bleeps that start far apart and get closer together
-        while (at < 1.1) {
-            const order = at / 1.1; // 0 at the start, 1 when the code is "done"
-            const onPattern = Math.random() < order * order;
-            const f = onPattern
-                ? pattern[k % pattern.length]
-                : wild[Math.floor(Math.random() * wild.length)];
-            sndTone(f, 0.022, { vol: 0.022 + 0.018 * order, at, lp: 4500 });
-            if (!onPattern && Math.random() < 0.35 * (1 - order)) sndBits(0.012, 5000, 0.03 * (1 - order) + 0.0002, at);
-            k++;
-            at += 0.075 - 0.047 * order; // from 75 ms apart down to about 28 ms
-        }
-        // phase 2, compile: a clean rising arpeggio over two octaves
-        [784, 1046.5, 1318.51, 1567.98, 2093, 2637].forEach((f, i) => {
-            sndTone(f, 0.05, { vol: 0.04, at: 1.16 + i * 0.07, lp: 4500 });
-        });
-        // phase 3, build complete: the console's two-step chirp
-        sndTone(1567.98, 0.06, { vol: 0.05, at: 1.78, lp: 4000 });
-        sndTone(2093, 0.16, { vol: 0.05, at: 1.85, lp: 4000 });
+        const run = BUILD.start();
+        while (run.at < 1.1) BUILD.step(run, run.at + 0.05, (run.at / 1.1) ** 2, false);
+        BUILD.finish(run, 1.16);
     },
     /* one replay read during an upload. ones that come in fast get spaced out so they stay ticks */
     read() {
@@ -3482,6 +3464,133 @@ const SFX = {
     },
 };
 
+/* ---- the build sound: the Pokémon getting built out of code ----
+   it starts as scattered data bleeps at random pitches with a little bit-noise crackle.
+   `order` (0 to 1) is how much of the overview has been written: the further along, the more bleeps
+   land on a clean rising pattern instead of a random pitch, so the noise turns into order as the text
+   fills in. when the overview is done, a fast arpeggio "compiles" it and a two-step chirp says it's built */
+const BUILD = {
+    pattern: [1046.5, 1318.51, 1567.98, 2093], // the "finished" notes, a C major chord
+    wild: [587, 698, 830, 932, 1109, 1245, 1480, 1661, 1865, 2217, 2489, 2794, 3136],
+
+    /* a new build. `at` counts seconds since it started, t0 is when it started on the audio clock */
+    start() {
+        return { t0: SND.ctx ? SND.ctx.currentTime + SND.shift : 0, at: 0.02, k: 0, notes: [] };
+    },
+
+    /* schedule every bleep from where the build is up to `until` seconds in.
+       before the typing starts the bleeps are fast and dense; while it types they spread out and get
+       quieter, so the machinery text stays in front */
+    step(run, until, order, typing) {
+        if (!sndReady()) return;
+        const notes = sndGroup(() => {
+            while (run.at < until) {
+                const lead = run.t0 + run.at - SND.ctx.currentTime - SND.shift; // seconds from now
+                const onPattern = Math.random() < order * order;
+                const f = onPattern
+                    ? BUILD.pattern[run.k % BUILD.pattern.length]
+                    : BUILD.wild[Math.floor(Math.random() * BUILD.wild.length)];
+                const vol = typing ? 0.016 + 0.014 * order : 0.022 + 0.018 * order;
+                if (lead > -0.01) {
+                    sndTone(f, 0.022, { vol, at: Math.max(0, lead), lp: 4500 });
+                    if (!onPattern && Math.random() < 0.35 * (1 - order)) {
+                        sndBits(0.012, 5000, 0.03 * (1 - order) + 0.0002, Math.max(0, lead));
+                    }
+                }
+                run.k++;
+                run.at += typing ? 0.11 - 0.04 * order : 0.075 - 0.047 * Math.min(1, run.at / 1.1);
+            }
+        });
+        run.notes.push(...notes);
+    },
+
+    /* the overview is done: cut any bleeps still waiting, then compile and chirp.
+       `lead` is how many seconds from now it should start */
+    finish(run, lead) {
+        if (run) {
+            const now = SND.ctx ? SND.ctx.currentTime + SND.shift + (lead || 0) : 0;
+            sndCancel(run.notes.filter((n) => n.at > now));
+        }
+        const at = lead || 0;
+        [784, 1046.5, 1318.51, 1567.98, 2093, 2637].forEach((f, i) => {
+            sndTone(f, 0.05, { vol: 0.04, at: at + i * 0.07, lp: 4500 });
+        });
+        sndTone(1567.98, 0.06, { vol: 0.05, at: at + 0.48, lp: 4000 });
+        sndTone(2093, 0.16, { vol: 0.05, at: at + 0.55, lp: 4000 });
+    },
+};
+
+/* ---- the machinery text: the typing sound that runs under the overview while it types out ----
+   it uses your recording from the Desk HUD if it's in the repo at sounds/print-machinery.wav (or .mp3).
+   without the file it falls back to built-in mechanical clicks */
+const TYPESND = {
+    buffer: null, // the decoded recording, once it's loaded
+    tried: false,
+
+    /* load the recording once. if it isn't there, this quietly leaves buffer empty */
+    async load() {
+        if (TYPESND.tried || !SND.ctx) return;
+        TYPESND.tried = true;
+        for (const file of ["sounds/print-machinery.wav", "sounds/print-machinery.mp3"]) {
+            try {
+                const res = await fetch(file);
+                if (!res.ok) continue;
+                TYPESND.buffer = await SND.ctx.decodeAudioData(await res.arrayBuffer());
+                return;
+            } catch (e) {}
+        }
+    },
+
+    /* start the typing sound. hands back something to stop it with */
+    start() {
+        if (!sndReady()) return null;
+        const c = SND.ctx;
+        const t = c.currentTime + SND.shift;
+        const g = c.createGain();
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(TYPESND.buffer ? 0.6 : 1, t + 0.08);
+        g.connect(SND.out);
+        if (TYPESND.buffer) {
+            // loop the recording, starting from a random spot so each Pokémon sounds a little different
+            const src = c.createBufferSource();
+            src.buffer = TYPESND.buffer;
+            src.loop = true;
+            src.connect(g);
+            src.start(t, Math.random() * TYPESND.buffer.duration * 0.8);
+            return { g, src };
+        }
+        return { g, src: null, at: 0, t0: t }; // the built-in clicks get scheduled by TYPESND.clicks
+    },
+
+    /* the built-in fallback: uneven little relay clicks with a low thump now and then,
+       scheduled up to `until` seconds after the typing started */
+    clicks(h, until) {
+        if (!h || h.src || !sndReady()) return;
+        const keep = SND.out;
+        SND.out = h.g; // route the clicks through the typing sound's own volume, so stopping it stops them
+        while (h.at < until) {
+            const lead = h.t0 + h.at - SND.ctx.currentTime - SND.shift;
+            if (lead > -0.01) {
+                sndBits(0.009, 2200 + Math.random() * 2600, 0.02, Math.max(0, lead));
+                if (Math.random() < 0.18) sndTone(150, 0.03, { type: "sine", vol: 0.04, at: Math.max(0, lead) });
+            }
+            h.at += 0.035 + Math.random() * 0.03;
+        }
+        SND.out = keep;
+    },
+
+    /* fade the typing sound out */
+    stop(h) {
+        if (!h || !SND.ctx) return;
+        const t = SND.ctx.currentTime + SND.shift;
+        h.g.gain.cancelScheduledValues(t);
+        h.g.gain.setValueAtTime(Math.max(h.g.gain.value, 0.0001), t);
+        h.g.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+        if (h.src) h.src.stop(t + 0.15);
+        if (!SND.offline) setTimeout(() => h.g.disconnect(), 400); // tidy up once it's silent
+    },
+};
+
 /* ---- waking the audio up ---- */
 try {
     SND.on = localStorage.getItem("astral-sound") !== "off";
@@ -3497,6 +3606,7 @@ function sndWake() {
     if (!AC) return;
     SND.ctx = new AC();
     SND.out = sndConnect(SND.ctx);
+    TYPESND.load();
 }
 addEventListener("pointerdown", sndWake, true);
 addEventListener("keydown", sndWake, true);
@@ -3506,7 +3616,7 @@ addEventListener("keydown", sndWake, true);
    and the sound plays next to it */
 
 // the notes of the build sound and the roulette that are playing right now, so they can be cut off
-const SND_NOW = { build: null, roulette: null, rouletteAt: 0 };
+const SND_NOW = { build: null, roulette: null, rouletteAt: 0, typing: null, timer: 0 };
 
 // opening and closing a home folder
 const sndOpenFull = openFull;
@@ -3540,13 +3650,49 @@ runScan = function () {
     sndRunScan();
     if (!spOf(cur())) return;
     if (performance.now() - SND_NOW.rouletteAt < 250) sndCancel(SND_NOW.roulette);
-    sndCancel(SND_NOW.build);
-    SND_NOW.build = sndGroup(SFX.materialize);
+    sndStopBuild(false);
+    if (RM.matches) {
+        // reduced motion skips the typing, so there's nothing to follow: play the short build
+        SND_NOW.build = { notes: sndGroup(SFX.materialize) };
+        return;
+    }
+    sndStartBuild(SCAN.tok);
 };
+
+/* the build keeps scanning for as long as the overview is typing.
+   every 80 ms it looks at how far the typing has got and schedules the next few bleeps to match.
+   when the typing finishes it plays "build complete"; if you leave mid-scan it just goes quiet */
+function sndStartBuild(tok) {
+    const run = BUILD.start();
+    const started = performance.now();
+    SND_NOW.build = run;
+    SND_NOW.timer = setInterval(() => {
+        if (tok !== SCAN.tok) return sndStopBuild(false); // you switched Pokémon or went home
+        if (SCAN.done) return sndStopBuild(true); // the overview is fully typed
+        const elapsed = (performance.now() - started) / 1000;
+        const typing = SCAN.started && SCAN.total > 0;
+        // before typing starts the code is still pure noise; after that, order follows the typing
+        const order = typing ? 0.1 + 0.9 * (SCAN.pos / SCAN.total) : Math.min(0.1, (elapsed / 1.1) * 0.1);
+        BUILD.step(run, elapsed + 0.25, order, typing);
+        if (typing && !SND_NOW.typing) SND_NOW.typing = TYPESND.start();
+        TYPESND.clicks(SND_NOW.typing, elapsed - 1.1 + 0.25);
+    }, 80);
+}
+function sndStopBuild(complete) {
+    clearInterval(SND_NOW.timer);
+    TYPESND.stop(SND_NOW.typing);
+    SND_NOW.typing = null;
+    const run = SND_NOW.build;
+    SND_NOW.build = null;
+    if (!run) return;
+    if (complete) BUILD.finish(run, 0.03);
+    else sndCancel(run.notes);
+}
+
 // heading home mid-build cuts the build sound off
 const sndGoHome = goHome;
 goHome = function () {
-    sndCancel(SND_NOW.build);
+    sndStopBuild(false);
     sndCancel(SND_NOW.roulette);
     sndGoHome();
 };
@@ -3627,7 +3773,7 @@ function sndToggle() {
         sndWake();
         setTimeout(SFX.unmute, 30); // a tiny chirp so you know it's back on
     } else {
-        sndCancel(SND_NOW.build);
+        sndStopBuild(false);
         sndCancel(SND_NOW.roulette);
     }
 }
